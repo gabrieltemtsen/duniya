@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.Color
 @Immutable
 data class DuniyaPalette(
     val isDark: Boolean,
+    val isEthereum: Boolean = false,
     val pageBg: Color,
     val sheetSurface: Color,
     val recessedWell: Color,
@@ -32,6 +33,7 @@ data class DuniyaPalette(
 
 val ArchivalPaperPalette = DuniyaPalette(
     isDark = false,
+    isEthereum = false,
     pageBg = Color(0xFFF4EFE6),           // Warm archival cotton paper
     sheetSurface = Color(0xFFFCF9F2),     // Crisp monograph page sheet
     recessedWell = Color(0xFFE9E2D4),     // Tactile recessed paper well
@@ -57,6 +59,7 @@ val ArchivalPaperPalette = DuniyaPalette(
 
 val ObsidianNightPalette = DuniyaPalette(
     isDark = true,
+    isEthereum = false,
     pageBg = Color(0xFF11100E),           // Warm carbon obsidian
     sheetSurface = Color(0xFF1A1916),     // Tactile keycap dark surface
     recessedWell = Color(0xFF0C0B0A),     // Deep OLED well
@@ -78,6 +81,32 @@ val ObsidianNightPalette = DuniyaPalette(
     hardwareInk = Color(0xFFF3EFE6),      // Warm phosphor white
     hardwareMuted = Color(0xFF969084),    // Silkscreen label
     hardwareRule = Color(0xFF2B2924)      // Hardware seam
+)
+
+val EthereumSilverPalette = DuniyaPalette(
+    isDark = true,
+    isEthereum = true,
+    pageBg = Color(0xFF07080E),           // Deep cosmic void slate
+    sheetSurface = Color(0xFF0E121F),     // Frosted midnight slate surface
+    recessedWell = Color(0xFF080B13),     // Recessed well
+    elevatedCard = Color(0xFF14192A),     // Specular elevated glass card
+    inkPrimary = Color(0xFFF8FAFC),       // Liquid platinum / silver 100
+    inkSecondary = Color(0xFFCBD5E1),     // Silver metallic 300
+    inkMuted = Color(0xFF8A92B2),         // Ethereum slate silver
+    vermilion = Color(0xFF627EEA),        // Ethereum Diamond Blue
+    vermilionSoft = Color(0xFF1A213D),    // Frosted Ethereum blue wash
+    verdigris = Color(0xFF38C98E),        // Phosphor mint
+    verdigrisSoft = Color(0xFF0F261E),    // Frosted mint wash
+    brass = Color(0xFF8C9EFF),            // Luminous electric indigo
+    brassSoft = Color(0xFF1F2445),        // Frosted indigo wash
+    crimson = Color(0xFFF43F5E),          // Diagnostic rose crimson
+    crimsonSoft = Color(0xFF2E1219),      // Frosted crimson wash
+    ruleLine = Color(0xFF20273D),         // Specular silver hairline
+    hardwareChassis = Color(0xFF0A0D18),  // Matte space-grade chassis
+    hardwareWell = Color(0xFF05070D),     // Deep silicon die well
+    hardwareInk = Color(0xFFE2E8F0),      // Crisp silver phosphor
+    hardwareMuted = Color(0xFF8A92B2),    // Silkscreen silver label
+    hardwareRule = Color(0xFF1E263C)      // Chassis hairline
 )
 
 val LocalDuniyaPalette = staticCompositionLocalOf { ArchivalPaperPalette }

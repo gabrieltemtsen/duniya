@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gabriel Temtsen — Senior Full-Stack, AI Agent & Web3 Engineer CV</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    :root {
+      --ink: #0f172a;
+      --ink-secondary: #334155;
+      --ink-muted: #64748b;
+      --accent: #0f4c81;
+      --accent-light: #e0f2fe;
+      --border: #cbd5e1;
+      --bg-subtle: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    @page {
+      size: A4;
+      margin: 7.5mm 11mm 7.5mm 11mm;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--ink);
+      background: #ffffff;
+      font-size: 8.2pt;
+      line-height: 1.28;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* Header */
+    .header {
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 6px;
+      margin-bottom: 7px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+    }
+
+    .header-left h1 {
+      font-size: 17.5pt;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+      line-height: 1.05;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .header-left .role-title {
+      font-size: 9.5pt;
+      font-weight: 700;
+      color: var(--accent);
+      margin-top: 2px;
+      letter-spacing: -0.01em;
+    }
+
+    .header-left .availability-badge {
+      display: inline-block;
+      margin-top: 3px;
+      font-size: 7.3pt;
+      font-weight: 600;
+      color: #065f46;
+      background: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    .header-right {
+      text-align: right;
+      font-size: 7.8pt;
+      color: var(--ink-secondary);
+      line-height: 1.38;
+    }
+
+    .header-right .contact-line {
+      white-space: nowrap;
+    }
+
+    .header-right strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    /* Section Styling */
+    .section {
+      margin-bottom: 5.5px;
+    }
+
+    .section-title {
+      font-size: 8.4pt;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ink);
+      border-bottom: 1.2px solid var(--border);
+      padding-bottom: 1.5px;
+      margin-bottom: 3.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-title span.sub {
+      font-size: 7.1pt;
+      font-weight: 500;
+      color: var(--ink-muted);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    /* Summary */
+    .summary {
+      font-size: 8.0pt;
+      color: var(--ink-secondary);
+      line-height: 1.3;
+    }
+
+    .summary strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    /* Key Metrics Strip */
+    .metrics-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .metric-card {
+      background: var(--bg-subtle);
+      border: 1px solid #e2e8f0;
+      border-left: 3px solid var(--accent);
+      border-radius: 3px;
+      padding: 3px 6px;
+    }
+
+    .metric-card .val {
+      font-size: 8.5pt;
+      font-weight: 800;
+      color: var(--ink);
+    }
+
+    .metric-card .lbl {
+      font-size: 6.9pt;
+      color: var(--ink-muted);
+      line-height: 1.15;
+    }
+
+    /* Skills Matrix */
+    .skills-grid {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      row-gap: 1.8px;
+      column-gap: 8px;
+      font-size: 7.85pt;
+    }
+
+    .skill-cat {
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .skill-items {
+      color: var(--ink-secondary);
+    }
+
+    /* Experience Items */
+    .exp-item {
+      margin-bottom: 4px;
+    }
+
+    .exp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 0.5px;
+    }
+
+    .exp-title {
+      font-size: 8.4pt;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .exp-company {
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .exp-meta {
+      font-size: 7.5pt;
+      font-weight: 600;
+      color: var(--ink-muted);
+      white-space: nowrap;
+    }
+
+    .exp-bullets {
+      list-style-type: none;
+      padding-left: 0;
+    }
+
+    .exp-bullets li {
+      position: relative;
+      padding-left: 9px;
+      margin-bottom: 1px;
+      font-size: 7.85pt;
+      color: var(--ink-secondary);
+      line-height: 1.25;
+    }
+
+    .exp-bullets li::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    .exp-bullets li strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    /* Projects Grid */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5.5px;
+    }
+
+    .project-card {
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      padding: 4.5px 7px;
+      background: #ffffff;
+    }
+
+    .project-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 4px;
+      margin-bottom: 1.5px;
+    }
+
+    .project-name {
+      font-size: 8.25pt;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .project-stack {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 6.7pt;
+      color: var(--accent);
+      background: var(--accent-light);
+      padding: 0.5px 4.5px;
+      border-radius: 3px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .project-desc {
+      font-size: 7.75pt;
+      color: var(--ink-secondary);
+      line-height: 1.28;
+    }
+
+    .project-desc strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    /* Hackathons & Awards */
+    .awards-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 5px;
+    }
+
+    .award-highlight {
+      background: var(--bg-subtle);
+      border: 1px solid #cbd5e1;
+      border-left: 3.5px solid #d97706;
+      border-radius: 4px;
+      padding: 4.5px 7px;
+    }
+
+    .award-title {
+      font-size: 8.2pt;
+      font-weight: 700;
+      color: var(--ink);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .award-title .badge {
+      font-size: 6.9pt;
+      font-weight: 700;
+      color: #92400e;
+      background: #fef3c7;
+      padding: 0.5px 5px;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    .award-desc {
+      font-size: 7.75pt;
+      color: var(--ink-secondary);
+      margin-top: 2px;
+      line-height: 1.28;
+    }
+
+    .hack-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 7.8pt;
+      margin-top: 2px;
+    }
+
+    .hack-table td {
+      padding: 2px 5px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: top;
+    }
+
+    .hack-table td.hack-name {
+      font-weight: 600;
+      color: var(--ink);
+      width: 34%;
+    }
+
+    .hack-table td.hack-focus {
+      color: var(--ink-secondary);
+    }
+
+    .hack-table td.hack-date {
+      text-align: right;
+      color: var(--ink-muted);
+      font-weight: 500;
+      white-space: nowrap;
+      width: 13%;
+    }
+
+    /* Two-column bottom section for Education & Certifications */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 12px;
+    }
+
+    .cert-list {
+      list-style: none;
+      font-size: 7.8pt;
+    }
+
+    .cert-list li {
+      display: flex;
+      justify-content: space-between;
+      padding: 1.8px 0;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+
+    .cert-list li:last-child {
+      border-bottom: none;
+    }
+
+    .cert-name {
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .cert-issuer {
+      color: var(--ink-secondary);
+      font-weight: 400;
+    }
+
+    .cert-date {
+      color: var(--ink-muted);
+      white-space: nowrap;
+      font-size: 7.4pt;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PAGE 1 -->
+  <header class="header">
+    <div class="header-left">
+      <h1>Gabriel Naanzam Temtsen</h1>
+      <div class="role-title">Full-Stack Software, Autonomous AI Agent &amp; Web3 Protocol Engineer</div>
+      <div class="availability-badge">● Available for Global Remote Outsourcing, Staff Augmentation &amp; Contract Engineering (UTC+1 · Full UK/EU &amp; US EST Overlap)</div>
+    </div>
+    <div class="header-right">
+      <div class="contact-line"><strong>Location:</strong> Jos, Nigeria (Remote Worldwide)</div>
+      <div class="contact-line"><strong>Email:</strong> <a href="mailto:gabrieltemtsen@gmail.com">gabrieltemtsen@gmail.com</a> · <strong>Tel:</strong> +234 905 239 0212</div>
+      <div class="contact-line"><strong>Portfolio:</strong> <a href="https://www.gabedev.xyz">gabedev.xyz</a> · <strong>GitHub:</strong> <a href="https://github.com/gabrieltemtsen">github.com/gabrieltemtsen</a></div>
+      <div class="contact-line"><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/gabriel-temtsen-bb0a8a">linkedin.com/in/gabriel-temtsen-bb0a8a</a></div>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="section-title">
+      <span>Executive Summary</span>
+      <span class="sub">4+ Years Shipping Production Web2, Web3 &amp; AI Systems</span>
+    </div>
+    <p class="summary">
+      Results-driven <strong>Full-Stack Software, AI &amp; Blockchain Engineer</strong> with <strong>4+ years of hands-on production experience</strong> architecting high-reliability web applications, autonomous AI agent ecosystems (<strong>RAG, MCP, x402 micropayments, OpenAI/Gemini</strong>), cross-border fintech rails, and audited smart contracts. <strong>2× Hackathon Winner</strong> (Avalanche Summer Hackathon &amp; Web3 Afrika × Bunzz) and <strong>Top 5 Computer Science graduate (4.18/5.00 CGPA)</strong> with <strong>30+ shipped repositories</strong> spanning Next.js, TypeScript, NestJS, Python, Kotlin, and Solidity. Proven track record of owning products end-to-end—from system design and database modeling to CI/CD deployment—for distributed remote teams across Europe, North America, and Africa.
+    </p>
+    <div class="metrics-strip">
+      <div class="metric-card">
+        <div class="val">4+ Years</div>
+        <div class="lbl">Full-Stack, AI &amp; Web3 Production Delivery</div>
+      </div>
+      <div class="metric-card">
+        <div class="val">2× Winner / 11+ Hacks</div>
+        <div class="lbl">Avalanche &amp; Bunzz Winner + Global AI/Web3 Finalist</div>
+      </div>
+      <div class="metric-card">
+        <div class="val">30+ Production Apps</div>
+        <div class="lbl">Shipped across EVM, Hedera, Celo, Stacks, Stellar &amp; Mobile</div>
+      </div>
+      <div class="metric-card">
+        <div class="val">4.18 / 5.00 CGPA</div>
+        <div class="lbl">Ranked Top 5 in B.Sc. Computer Science Class</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-title">
+      <span>Core Technical Competencies &amp; Stack</span>
+      <span class="sub">ATS &amp; Enterprise Outsourcing Aligned</span>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-cat">Languages:</div>
+      <div class="skill-items"><strong>TypeScript</strong>, <strong>JavaScript (ES2024+)</strong>, <strong>Python</strong>, <strong>Solidity</strong>, <strong>Kotlin</strong>, Clarity (Stacks), SQL, HTML5/CSS3, Bash</div>
+
+      <div class="skill-cat">Frontend &amp; Mobile:</div>
+      <div class="skill-items"><strong>Next.js (14/15/16 App Router)</strong>, <strong>React.js</strong>, <strong>Vue.js</strong>, Tailwind CSS, React Native (Expo), Android Jetpack Compose, PWAs, Farcaster Mini Apps, Wagmi / Viem / Ethers.js</div>
+
+      <div class="skill-cat">Backend &amp; APIs:</div>
+      <div class="skill-items"><strong>Node.js</strong>, <strong>NestJS</strong>, <strong>Express.js</strong>, FastAPI, Convex (Realtime Serverless), RESTful APIs, GraphQL, The Graph (Subgraphs), WebSockets, Webhook Orchestration (Paystack, Paycrest)</div>
+
+      <div class="skill-cat">AI &amp; Agentic Systems:</div>
+      <div class="skill-items"><strong>LLM Orchestration (OpenAI, Gemini, Claude)</strong>, <strong>Model Context Protocol (MCP)</strong>, <strong>Hybrid RAG &amp; Vector Search</strong>, <strong>x402 Agent Payment Rail</strong>, ElizaOS, Prompt Engineering, Sparse MoE &amp; On-Device Inference</div>
+
+      <div class="skill-cat">Blockchain &amp; Web3:</div>
+      <div class="skill-items"><strong>Ethereum (EVM)</strong>, <strong>Solidity &amp; Foundry (Forge/Cast)</strong>, Hardhat, <strong>Hedera (HCS / HTS)</strong>, <strong>Celo</strong>, <strong>Base</strong>, <strong>Avalanche</strong>, <strong>Arc Mainnet</strong>, Stacks (Clarity), Stellar (Soroban), Aptos (Move), EigenLayer AVS, Request Network</div>
+
+      <div class="skill-cat">Databases &amp; DevOps:</div>
+      <div class="skill-items"><strong>PostgreSQL</strong>, <strong>MongoDB</strong>, Redis, SQLite, Prisma / Mongoose, Docker, Docker Compose, Fly.io, Vercel, Git / GitHub Actions CI/CD, Linux / GrapheneOS, Cisco Networking (CCNA)</div>
+    </div>
+  </section>
+
+  <section class="section" style="margin-bottom: 0;">
+    <div class="section-title">
+      <span>Professional Engineering Experience</span>
+      <span class="sub">Reverse-Chronological (2022 – 2026)</span>
+    </div>
+
+    <div class="exp-item">
+      <div class="exp-header">
+        <div>
+          <span class="exp-title">AI, Web3 &amp; Full-Stack Software Engineer</span> · <span class="exp-company">TechFusion Africa</span>
+        </div>
+        <div class="exp-meta">Jan 2024 – Present · Jos, Nigeria (Hybrid / Remote)</div>
+      </div>
+      <ul class="exp-bullets">
+        <li><strong>End-to-End Product Architecture:</strong> Lead the design, development, and cloud deployment of full-stack web applications, AI-powered automation pipelines, and decentralized financial (DeFi) platforms using <strong>TypeScript, Next.js 15/16, NestJS, Python, and MongoDB/PostgreSQL</strong>.</li>
+        <li><strong>Multi-Corridor Fintech Infrastructure (ClovaPay Africa):</strong> Architected an open-source stablecoin-to-local-fiat off-ramp platform settling across <strong>9 African &amp; global corridors</strong> (Nigeria, Kenya M-PESA, Ghana MoMo, Uganda, Tanzania, Malawi, Brazil Pix) via Paycrest webhooks, Stacks/Clarity smart contracts, and <strong>x402 pay-per-call agent APIs</strong>.</li>
+        <li><strong>Marketplace &amp; Logistics PWA (Houselyx):</strong> Engineered a full-stack Progressive Web App (<strong>Next.js 15, Convex, Clerk, Paystack, Tailwind CSS 4</strong>) unifying verified property, building material, and farm produce marketplaces with dual-path webhook payment verification and real-time freight dispatch tracking.</li>
+        <li><strong>Agentic Micro-Lending &amp; Conversational Finance (Clenja):</strong> Built a non-custodial cooperative micro-lending protocol and Telegram/WhatsApp AI financial assistant on <strong>Celo</strong> featuring Para per-user wallets, SelfClaw borrower verification, and deterministic smart-contract risk guardrails.</li>
+        <li><strong>Production AI &amp; RAG Systems:</strong> Integrated LLM workflows (<strong>OpenAI, Google Gemini</strong>), vector embeddings, and structured JSON synthesis into client products—reducing manual data triage and eliminating LLM numerical hallucinations via deterministic pre-computation layers.</li>
+      </ul>
+    </div>
+
+    <div class="exp-item">
+      <div class="exp-header">
+        <div>
+          <span class="exp-title">Independent Full-Stack, AI Agent &amp; Protocol Engineer</span> · <span class="exp-company">Global Web3 &amp; Open-Source Ecosystems</span>
+        </div>
+        <div class="exp-meta">Nov 2022 – Present · Remote (Hedera, Celo, Drips/Stellar, Base, Arc)</div>
+      </div>
+      <ul class="exp-bullets">
+        <li><strong>Autonomous Agent Data Market (ConduitX on Hedera):</strong> Engineered a decentralized execution layer enabling AI agents to discover, meter, and audit on-chain Subgraph data with <strong>sub-2-second micro-cent settlement over x402</strong>, immutable <strong>Hedera Consensus Service (HCS)</strong> receipts, and native <strong>MCP server tooling</strong> for Claude Desktop &amp; Cursor.</li>
+        <li><strong>Offline On-Device AI Engine (Duniya for Android/GrapheneOS):</strong> Built an air-gapped mobile research engine in <strong>Kotlin &amp; Jetpack Compose</strong> implementing <strong>Sparse Mixture-of-Experts (MoE) routing, N-gram speculative lookahead, and Hybrid BM25+Vector RAG</strong> over 50 GB UFS flash packs with zero network permissions.</li>
+        <li><strong>Mainnet DeFi &amp; Algorithmic Trading Systems:</strong> Deployed <strong>GScoop</strong> (a trust-minimized ROSCA cooperative credit protocol in <strong>Solidity 0.8.24</strong> on <strong>Arc Mainnet</strong> with <strong>19/19 passing Foundry test suites</strong>) and <strong>Senpi Agent</strong> (an autonomous momentum &amp; mean-reversion trading agent on <strong>Hyperliquid</strong> with regime classification and DSL trailing stops).</li>
+        <li><strong>Open-Source Ecosystem Contributions (Drips &amp; Stellar):</strong> Delivered 10+ open-source full-stack and smart-contract repositories including <em>StellarLend, Stellar-Stream, Stellar-Portfolio-Rebalancer, Revora,</em> and <em>ProxyPay</em>, maintaining strict API contracts and automated test coverage.</li>
+      </ul>
+    </div>
+
+    <div class="exp-item">
+      <div class="exp-header">
+        <div>
+          <span class="exp-title">Full-Stack Web Developer (Contract / Intern)</span> · <span class="exp-company">IVULA Technologies</span>
+        </div>
+        <div class="exp-meta">Jan 2024 – Mar 2024 · Remote</div>
+      </div>
+      <ul class="exp-bullets">
+        <li>Engineered responsive, mobile-first web interfaces and scalable <strong>RESTful APIs</strong> using <strong>React, TypeScript, Node.js, and NestJS</strong>, improving client-server data synchronization and mobile accessibility scores across agile cross-functional remote sprints.</li>
+      </ul>
+    </div>
+
+    <div class="exp-item">
+      <div class="exp-header">
+        <div>
+          <span class="exp-title">IT Systems &amp; Database Associate (NYSC)</span> · <span class="exp-company">Akwanga E-Library</span>
+        </div>
+        <div class="exp-meta">Nov 2023 – Oct 2024 · Nasarawa, Nigeria</div>
+      </div>
+      <ul class="exp-bullets">
+        <li>Administered institutional databases, LAN infrastructure, and workstation systems across the digital library facility (<strong>99%+ hardware/network availability</strong>) and delivered technical training workshops for staff on database management and operational cybersecurity.</li>
+      </ul>
+    </div>
+
+    <div class="exp-item" style="margin-bottom: 0;">
+      <div class="exp-header">
+        <div>
+          <span class="exp-title">Junior Full-Stack Developer</span> · <span class="exp-company">TechFusion Africa</span>
+        </div>
+        <div class="exp-meta">Apr 2022 – Oct 2022 · Jos, Nigeria</div>
+      </div>
+      <ul class="exp-bullets">
+        <li>Developed and shipped full-stack startup web applications across client and server tiers using <strong>Vue.js, TypeScript, NestJS, and MongoDB</strong>, including <strong>Lickle-Blog</strong> (a complete multi-user blogging and CMS platform) with unit and endpoint integration testing.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- PAGE 2 -->
+  <div class="page-break"></div>
+
+  <!-- HACKATHON WINS & COMPETITIVE ACHIEVEMENTS -->
+  <section class="section">
+    <div class="section-title">
+      <span>Hackathon Wins &amp; Competitive Engineering Achievements</span>
+      <span class="sub">Verified Track Record (2022 – 2026)</span>
+    </div>
+
+    <div class="awards-row">
+      <div class="award-highlight">
+        <div class="award-title">
+          <span>🏆 Winner — Web3 Afrika × Bunzz</span>
+          <span class="badge">Official Winner · May 2023</span>
+        </div>
+        <div class="award-desc">
+          Selected as an official hackathon winner for architecting and deploying a modular smart-contract decentralized application utilizing Bunzz's smart contract infrastructure and React/TypeScript frontend integration.
+        </div>
+      </div>
+
+      <div class="award-highlight">
+        <div class="award-title">
+          <span>🥉 3rd Place — Avalanche Summer Hacks</span>
+          <span class="badge">3rd Place · Nov 2022</span>
+        </div>
+        <div class="award-desc">
+          Co-led team <strong>Rustydevs</strong> to build and ship <strong>Avax-Lottery dApp</strong>, a provably fair, decentralized on-chain lottery application deployed on the Avalanche C-Chain with automated prize pool distribution.
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size: 7.9pt; font-weight: 700; color: var(--ink); margin: 3px 0 2px 0;">
+      Global AI Agent &amp; Web3 Hackathon Finalist / Shipped Submissions (2023 – 2026):
+    </div>
+    <table class="hack-table">
+      <tbody>
+        <tr>
+          <td class="hack-name">Agents at Work Hackathon</td>
+          <td class="hack-focus">Autonomous multi-step enterprise AI agent workflows, tool-calling orchestration &amp; verification</td>
+          <td class="hack-date">Sept 2026</td>
+        </tr>
+        <tr>
+          <td class="hack-name">Build with DataHub: The Agent Hackathon</td>
+          <td class="hack-focus">Metadata-driven AI agents, context-aware data discovery &amp; automated governance pipelines</td>
+          <td class="hack-date">Sept 2026</td>
+        </tr>
+        <tr>
+          <td class="hack-name">AMD Developer Hackathon</td>
+          <td class="hack-focus">High-efficiency AI inference optimization, hardware-aware compute &amp; developer tooling</td>
+          <td class="hack-date">June 2026</td>
+        </tr>
+        <tr>
+          <td class="hack-name">Hedera Hello Future Apex Hackathon</td>
+          <td class="hack-focus">Built <strong>ConduitX</strong> &amp; <strong>Apex-Learn</strong>: x402 agent micropayments + Hedera Consensus Service (HCS) ledger</td>
+          <td class="hack-date">Mar 2026</td>
+        </tr>
+        <tr>
+          <td class="hack-name">Request Network End-of-Year Hackathon</td>
+          <td class="hack-focus">Programmable crypto invoicing, automated on-chain payment requests &amp; multi-currency settlement</td>
+          <td class="hack-date">Nov 2024</td>
+        </tr>
+        <tr>
+          <td class="hack-name">Move on Aptos &amp; Code Collision Hackathon</td>
+          <td class="hack-focus">High-throughput smart contract engineering &amp; decentralized consumer applications on Aptos</td>
+          <td class="hack-date">Aug–Oct 2024</td>
+        </tr>
+        <tr>
+          <td class="hack-name">EigenLayer AVS MicroHacks Hackathon</td>
+          <td class="hack-focus">Actively Validated Services (AVS) restaking primitives &amp; cryptographic verification workflows</td>
+          <td class="hack-date">May 2024</td>
+        </tr>
+        <tr>
+          <td class="hack-name">Pi Network &amp; Web3 Afrika Mini Hackathons</td>
+          <td class="hack-focus">Mobile-first decentralized commerce &amp; accessible Web3 utility dApps for emerging markets</td>
+          <td class="hack-date">Apr 2023</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- FLAGSHIP ENGINEERING PORTFOLIO -->
+  <section class="section">
+    <div class="section-title">
+      <span>Selected Production &amp; Open-Source Systems</span>
+      <span class="sub">Codebases Available at github.com/gabrieltemtsen</span>
+    </div>
+    <div class="projects-grid">
+      <div class="project-card">
+        <div class="project-top">
+          <span class="project-name">ConduitX — Agentic Data Market &amp; x402 Rail</span>
+          <span class="project-stack">Next.js 16 · Hedera HCS · MCP</span>
+        </div>
+        <div class="project-desc">
+          Decentralized market and execution layer where autonomous AI agents procure The Graph Subgraph data per query, settle micro-cents in <strong>&lt;2s over x402 on Hedera</strong>, and log immutable reputation receipts to HCS. Includes MCP server for Claude Desktop &amp; Cursor.
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-top">
+          <span class="project-name">Duniya — Offline Sparse-MoE Android Engine</span>
+          <span class="project-stack">Kotlin · Compose · Hybrid RAG</span>
+        </div>
+        <div class="project-desc">
+          Air-gapped Android &amp; GrapheneOS AI research engine combining <strong>8×8 Sparse Mixture-of-Experts (MoE)</strong> token routing, N-gram lookahead, and hybrid BM25 + vector RAG over 50 GB UFS flash packs with Linux <code>/proc</code> kernel telemetry and zero network sockets.
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-top">
+          <span class="project-name">ClovaPay Africa — Multi-Corridor Off-Ramp</span>
+          <span class="project-stack">TypeScript · Clarity · Paycrest</span>
+        </div>
+        <div class="project-desc">
+          Crypto-to-fiat liquidity and settlement protocol converting stablecoins &amp; STX directly into local bank accounts and mobile money across <strong>9 African &amp; LatAm corridors</strong> (NGN, KES, GHS, UGX, TZS, MWK, BRL) with x402 agent-native APIs.
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-top">
+          <span class="project-name">Clenja — AI Cooperative Micro-Lending</span>
+          <span class="project-stack">Celo · Solidity · Next.js 16</span>
+        </div>
+        <div class="project-desc">
+          Non-custodial cUSD lending pool and Telegram/WhatsApp AI finance assistant on Celo. Features deterministic smart-contract underwriting, <strong>SelfClaw</strong> borrower verification, <strong>Para</strong> embedded wallets, and x402-monetized quote/offramp endpoints.
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-top">
+          <span class="project-name">Houselyx — Verified Marketplace &amp; Logistics PWA</span>
+          <span class="project-stack">Next.js 15 · Convex · Paystack</span>
+        </div>
+        <div class="project-desc">
+          Installable PWA marketplace for verified real estate, building materials, and farm produce with integrated Jos ⇄ Abuja logistics. Features dual webhook/callback Paystack settlement, admin verification queues, and end-to-end transit state machines.
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-top">
+          <span class="project-name">GScoop — Mainnet ROSCA Credit Protocol</span>
+          <span class="project-stack">Solidity 0.8.24 · Foundry · Arc</span>
+        </div>
+        <div class="project-desc">
+          Trust-minimized Rotating Savings and Credit Association protocol deployed on <strong>Arc Mainnet</strong> (Chain ID 5042) using native USDC gas. Enforces collateralized payouts, automated default slashing, and <strong>19/19 Foundry unit/fuzz tests</strong>.
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-top">
+          <span class="project-name">FPL Doctor — Deterministic Analytics + Gemini</span>
+          <span class="project-stack">Next.js · TypeScript · Gemini</span>
+        </div>
+        <div class="project-desc">
+          Dual-target <strong>Farcaster Mini App &amp; PWA</strong> computing expected Fantasy Premier League points (xG/90, xA/90, fixture multipliers, clean-sheet odds) via a pure auditable TypeScript engine paired with strict zero-hallucination Gemini commentary.
+        </div>
+      </div>
+
+      <div class="project-card">
+        <div class="project-top">
+          <span class="project-name">Senpi Agent — Hyperliquid Trading System</span>
+          <span class="project-stack">TypeScript · Hyperliquid · DSL</span>
+        </div>
+        <div class="project-desc">
+          Self-hosted algorithmic trading agent classifying live market regimes (Trending vs. Choppy) to execute maker-first breakout or mean-reversion strategies with server-side DSL trailing stops, hard code-enforced risk caps, and an operator kill-switch UI.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EDUCATION & CERTIFICATIONS -->
+  <section class="section" style="margin-bottom: 0;">
+    <div class="two-col">
+      <div>
+        <div class="section-title">
+          <span>Education</span>
+        </div>
+        <div class="exp-item" style="margin-bottom: 4px;">
+          <div class="exp-header">
+            <span class="exp-title">B.Sc. in Computer Science</span>
+            <span class="exp-meta">Oct 2019 – Jul 2023</span>
+          </div>
+          <div style="font-size: 8.1pt; font-weight: 600; color: var(--accent); margin-bottom: 1.5px;">
+            Bingham University · Karu, Nigeria
+          </div>
+          <ul class="exp-bullets">
+            <li><strong>CGPA: 4.18 / 5.00</strong> — <strong>Ranked Top 5 in Department</strong>, Second Class Honours (Upper Division).</li>
+            <li><strong>Capstone Research:</strong> Designed &amp; built a <em>Decentralized Fundraising Platform and Governance DAO</em> on Ethereum.</li>
+            <li><strong>Activities:</strong> Google Developer Student Clubs (GDSC), University Soccer Team.</li>
+          </ul>
+        </div>
+        <div class="exp-item" style="margin-bottom: 0;">
+          <div class="exp-header">
+            <span class="exp-title">SSCE Secondary Diploma</span>
+            <span class="exp-meta">2013 – 2019</span>
+          </div>
+          <div style="font-size: 7.9pt; color: var(--ink-secondary);">
+            Emmanuel International College · Jos, Nigeria
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">
+          <span>Certifications &amp; Credentials</span>
+        </div>
+        <ul class="cert-list">
+          <li>
+            <div><span class="cert-name">Technical Support Fundamentals</span> <span class="cert-issuer">· Google &amp; Coursera</span></div>
+            <span class="cert-date">Jan 2026</span>
+          </li>
+          <li>
+            <div><span class="cert-name">Smart Contracts Specialization</span> <span class="cert-issuer">· SUNY Buffalo / Coursera (FK26TAVG7X72)</span></div>
+            <span class="cert-date">Feb 2023</span>
+          </li>
+          <li>
+            <div><span class="cert-name">Blockchain Basics</span> <span class="cert-issuer">· SUNY Buffalo / Coursera (S4QLHD658PXZ)</span></div>
+            <span class="cert-date">Feb 2023</span>
+          </li>
+          <li>
+            <div><span class="cert-name">Introduction to Web Development</span> <span class="cert-issuer">· Coursera (34XL49DDARNS)</span></div>
+            <span class="cert-date">Feb 2023</span>
+          </li>
+          <li>
+            <div><span class="cert-name">Cisco Certified Network Associate (CCNA)</span> <span class="cert-issuer">· Verified via Upwork</span></div>
+            <span class="cert-date">Jul 2022</span>
+          </li>
+          <li>
+            <div><span class="cert-name">Cisco IT Essentials</span> <span class="cert-issuer">· Cisco Networking Academy</span></div>
+            <span class="cert-date">Mar 2021</span>
+          </li>
+        </ul>
+
+        <div class="section-title" style="margin-top: 5px;">
+          <span>Remote Work &amp; Outsourcing Readiness</span>
+        </div>
+        <div style="font-size: 7.8pt; color: var(--ink-secondary); line-height: 1.32;">
+          <strong>Languages:</strong> English (Native/Fluent C2) · Hausa (Conversational)<br/>
+          <strong>Timezone &amp; Collaboration:</strong> WAT (UTC+1) — 100% overlap with UK/EU &amp; 5+ hrs overlap with US EST. Experienced in async Git/PR workflows, Linear/Jira, Slack, Dockerized handoffs, and automated test suites.
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

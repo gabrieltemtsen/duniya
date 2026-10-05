@@ -54,6 +54,31 @@ private val DuniyaObsidianDarkScheme = darkColorScheme(
     outline = ObsidianNightPalette.ruleLine
 )
 
+enum class ThemeMode {
+    PAPER,
+    OBSIDIAN,
+    ETHEREUM_SILVER
+}
+
+private val DuniyaEthereumSilverScheme = darkColorScheme(
+    primary = EthereumSilverPalette.vermilion,
+    onPrimary = Color.White,
+    primaryContainer = EthereumSilverPalette.vermilionSoft,
+    onPrimaryContainer = EthereumSilverPalette.inkPrimary,
+    secondary = EthereumSilverPalette.verdigris,
+    onSecondary = Color.Black,
+    secondaryContainer = EthereumSilverPalette.verdigrisSoft,
+    onSecondaryContainer = EthereumSilverPalette.inkPrimary,
+    tertiary = EthereumSilverPalette.brass,
+    background = EthereumSilverPalette.pageBg,
+    onBackground = EthereumSilverPalette.inkPrimary,
+    surface = EthereumSilverPalette.sheetSurface,
+    onSurface = EthereumSilverPalette.inkPrimary,
+    surfaceVariant = EthereumSilverPalette.recessedWell,
+    onSurfaceVariant = EthereumSilverPalette.inkSecondary,
+    outline = EthereumSilverPalette.ruleLine
+)
+
 val LocalDuniyaThemeToggle = staticCompositionLocalOf<() -> Unit> { {} }
 
 @Composable
@@ -61,9 +86,19 @@ fun DuniyaTheme(
     initialDarkTheme: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    var isDark by remember { mutableStateOf(initialDarkTheme) }
-    val palette = if (isDark) ObsidianNightPalette else ArchivalPaperPalette
-    val colorScheme = if (isDark) DuniyaObsidianDarkScheme else DuniyaPaperLightScheme
+    var themeMode by remember { 
+        mutableStateOf(if (initialDarkTheme) ThemeMode.OBSIDIAN else ThemeMode.PAPER) 
+    }
+    val palette = when (themeMode) {
+        ThemeMode.PAPER -> ArchivalPaperPalette
+        ThemeMode.OBSIDIAN -> ObsidianNightPalette
+        ThemeMode.ETHEREUM_SILVER -> EthereumSilverPalette
+    }
+    val colorScheme = when (themeMode) {
+        ThemeMode.PAPER -> DuniyaPaperLightScheme
+        ThemeMode.OBSIDIAN -> DuniyaObsidianDarkScheme
+        ThemeMode.ETHEREUM_SILVER -> DuniyaEthereumSilverScheme
+    }
 
     val view = LocalView.current
     if (!view.isInEditMode) {
@@ -72,15 +107,21 @@ fun DuniyaTheme(
             if (context is Activity) {
                 val window = context.window
                 val controller = WindowCompat.getInsetsController(window, view)
-                controller.isAppearanceLightStatusBars = !isDark
-                controller.isAppearanceLightNavigationBars = !isDark
+                controller.isAppearanceLightStatusBars = !palette.isDark
+                controller.isAppearanceLightNavigationBars = !palette.isDark
             }
         }
     }
 
     CompositionLocalProvider(
         LocalDuniyaPalette provides palette,
-        LocalDuniyaThemeToggle provides { isDark = !isDark }
+        LocalDuniyaThemeToggle provides {
+            themeMode = when (themeMode) {
+                ThemeMode.PAPER -> ThemeMode.OBSIDIAN
+                ThemeMode.OBSIDIAN -> ThemeMode.ETHEREUM_SILVER
+                ThemeMode.ETHEREUM_SILVER -> ThemeMode.PAPER
+            }
+        }
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

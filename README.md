@@ -6,15 +6,23 @@
 
 ---
 
-## Live On-Device Screenshots (Archival Field Paper & Obsidian OLED Night Modes)
+## Live On-Device & Web Companion Screenshots
 
-| Research Lab & 8×8 Silicon MoE Wafer Die | Monograph Synthesis & Citations | Multi-Entity Specification Matrix | Obsidian OLED Night Mode |
+### Ethereum Silver Glassmorphic Design System (Web Companion & Android)
+
+| Web Companion: Research Lab & 8×8 Wafer Die | Web Companion: Full Monograph & Spec Matrix | 1B vs MoE Benchmark Arena | Android: Ethereum Silver Glass |
 | :---: | :---: | :---: | :---: |
-| <img src="docs/screenshots/01_research_lab_top.png" width="210"/> | <img src="docs/screenshots/02_research_synthesis_matrix.png" width="210"/> | <img src="docs/screenshots/03_research_equations_citations.png" width="210"/> | <img src="docs/screenshots/09_kernel_proc_telemetry.png" width="210"/> |
+| <img src="docs/screenshots/web_app_ethereum_silver.png" width="220"/> | <img src="docs/screenshots/web_app_full_monograph.png" width="220"/> | <img src="docs/screenshots/web_app_benchmarks.png" width="220"/> | <img src="docs/screenshots/screen_android_ethereum.png" width="220"/> |
 
-| 50 GB UFS Flash Pack Manager & Search | 1B Dense vs. Sparse MoE Benchmark Arena | GrapheneOS & Linux Kernel Airgap Audit |
+### Native Android Workspaces (Archival Field Paper & Obsidian OLED Night)
+
+| Clean Paper Research Workspace | Monograph Reading Canvas | Multi-Entity Specification Matrix | Obsidian OLED Night Mode |
+| :---: | :---: | :---: | :---: |
+| <img src="docs/screenshots/screen_clean_ui_08_paper_ready.png" width="210"/> | <img src="docs/screenshots/screen_clean_ui_02_report.png" width="210"/> | <img src="docs/screenshots/screen_clean_ui_04_matrix.png" width="210"/> | <img src="docs/screenshots/screen_android_obsidian.png" width="210"/> |
+
+| 50 GB UFS Flash Pack Manager & Vault | 1B Dense vs. Sparse MoE Benchmark Arena | GrapheneOS & Linux Kernel Airgap Audit |
 | :---: | :---: | :---: |
-| <img src="docs/screenshots/06_50gb_packs_tab.png" width="210"/> | <img src="docs/screenshots/07_1b_vs_moe_benchmarks.png" width="210"/> | <img src="docs/screenshots/08_airgap_audit_tab.png" width="210"/> |
+| <img src="docs/screenshots/screen_clean_ui_09_vault.png" width="210"/> | <img src="docs/screenshots/screen_clean_ui_10_benchmarks.png" width="210"/> | <img src="docs/screenshots/08_airgap_audit_tab.png" width="210"/> |
 
 ---
 
@@ -159,8 +167,28 @@ Inside the app's **Research Lab** and **1B vs MoE Benchmark Arena**, you can tes
 - [`app/src/main/java/com/example/duniya/data/DuniyaKnowledgeDatabase.kt`](app/src/main/java/com/example/duniya/data/DuniyaKnowledgeDatabase.kt) — Android SQLite FTS4 BM25 + 256-dim Int8 Quantized Vector Similarity + 1-Hop Concept Graph Retriever.
 - [`app/src/main/java/com/example/duniya/data/DuniyaResearchCorpus.kt`](app/src/main/java/com/example/duniya/data/DuniyaResearchCorpus.kt) — Built-in graduate-level multi-domain research corpus and 1B failure benchmark suite.
 - [`app/src/main/java/com/example/duniya/ui/main/MainScreen.kt`](app/src/main/java/com/example/duniya/ui/main/MainScreen.kt) — Jetpack Compose UI with 4 tabs (`Research`, `50GB Packs`, `1B vs MoE`, `Airgap Audit`).
+- [`web/index.html`](web/index.html) — Standalone 100% offline Web App Companion featuring the **Ethereum Silver Glassmorphic Design System**, interactive 8×8 silicon wafer die MoE router, multi-document synthesis, and sound synthesizer.
+- [`web/style.css`](web/style.css) — Modern CSS with `@layer reset, base, theme, components, utilities`, `backdrop-filter: blur(24px) saturate(190%)`, specular hairlines, and responsive typography.
+- [`web/app.js`](web/app.js) — Client-side 4-hop synthesis engine, hash routing, and Web Audio API offline sound effects.
+- [`web/data.js`](web/data.js) — Pre-compiled JSON corpus containing 21 peer-reviewed research monographs, 6 hard benchmarks, equations, and citations.
+- [`index.html`](index.html) — Root launcher and redirect to `web/index.html` for local and hosted web access.
 - [`scripts/setup_offline_assets.sh`](scripts/setup_offline_assets.sh) — CLI verifier and external GGUF Sparse MoE pack provisioner.
 - [`scripts/build_custom_knowledge_pack.py`](scripts/build_custom_knowledge_pack.py) — Python utility to compile custom offline knowledge packs.
+
+---
+
+### Running the Ethereum Silver Web Companion
+
+You can launch the web companion instantly in any browser — zero server or build tool required:
+
+```bash
+# Option 1: Open directly in Chrome/Safari/Firefox (100% offline via file://)
+open web/index.html
+
+# Option 2: Run a lightweight local HTTP server
+python3 -m http.server 8080
+# Visit http://localhost:8080 or http://localhost:8080/web/
+```
 
 ---
 

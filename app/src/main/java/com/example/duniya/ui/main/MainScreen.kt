@@ -33,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.CheckCircle
@@ -279,14 +280,13 @@ private fun DuniyaNativeMasthead(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 10.dp),
+                .padding(horizontal = 16.dp, vertical = 9.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Left: Custom Geometric Prism/Tent Mark + Editorial Serif Masthead
+            // Left: Geometric Mark + Clean Brand + 100% Offline Status
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 DuniyaGeometricMark(
                     chassisColor = p.hardwareChassis,
@@ -294,110 +294,106 @@ private fun DuniyaNativeMasthead(
                     inkColor = p.hardwareInk
                 )
                 Spacer(modifier = Modifier.width(10.dp))
-                Column(modifier = Modifier.weight(1f)) {
+                Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "Duniya",
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 21.sp,
+                            fontSize = 20.sp,
                             color = p.inkPrimary,
-                            letterSpacing = (-0.4).sp,
-                            maxLines = 1
+                            letterSpacing = (-0.3).sp
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Surface(
-                            color = p.vermilionSoft,
-                            shape = RoundedCornerShape(4.dp)
-                        ) {
-                            Text(
-                                text = "FIELD",
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 8.5.sp,
-                                color = p.vermilion,
-                                maxLines = 1,
-                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.5.dp)
-                            )
-                        }
+                        Spacer(modifier = Modifier.width(7.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(5.5.dp)
+                                .background(Color(0xFF38C98E), CircleShape)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "100% Offline",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = p.inkMuted
+                        )
                     }
-                    Text(
-                        text = "DUNIYA • OFFLINE AI LAB",
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 9.sp,
-                        color = p.inkMuted,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
                 }
             }
 
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Right: Tactile Anodized Airgap Pill + Paper/OLED Theme Toggle
+            // Right: Minimal Status Pill + Theme Switcher
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Surface(
-                    color = p.hardwareChassis,
-                    shape = RoundedCornerShape(8.dp),
+                    color = p.recessedWell,
+                    shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.clickable { onOpenAirgapTab() }
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(6.dp)
+                                .size(5.dp)
                                 .background(
                                     if (isAirgapped) Color(0xFF38C98E) else p.vermilion,
                                     CircleShape
                                 )
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Column {
-                            Text(
-                                text = if (isAirgapped) "AIRGAPPED • 0 NET" else "AUDIT",
-                                fontFamily = FontFamily.Monospace,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 9.sp,
-                                color = p.hardwareInk,
-                                maxLines = 1
-                            )
-                            Text(
-                                text = "${"%.0f".format(tel.vmRssMb)} MB RAM · 2/64 MoE",
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 8.sp,
-                                color = p.hardwareMuted,
-                                maxLines = 1
-                            )
-                        }
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = if (isAirgapped) "0 Net · ${"%.0f".format(tel.vmRssMb)} MB" else "Audit",
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 10.sp,
+                            color = p.inkSecondary
+                        )
                     }
                 }
 
-                // One-Tap Paper / OLED Night Switcher
+                // Theme Toggle
                 Surface(
                     color = p.recessedWell,
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(12.dp),
                     modifier = Modifier
-                        .size(34.dp)
-                        .border(1.dp, p.ruleLine, RoundedCornerShape(8.dp))
+                        .size(36.dp)
                         .clickable { toggleTheme() }
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = if (p.isDark) Icons.Default.LightMode else Icons.Default.DarkMode,
-                            contentDescription = "Toggle Paper or OLED Theme",
-                            tint = p.inkPrimary,
-                            modifier = Modifier.size(16.dp)
-                        )
+                        when {
+                            p.isEthereum -> {
+                                Icon(
+                                    imageVector = Icons.Default.LightMode,
+                                    contentDescription = "Switch to Paper",
+                                    tint = p.inkPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            p.isDark -> {
+                                Text(
+                                    text = "⟠",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 17.sp,
+                                    color = Color(0xFF627EEA)
+                                )
+                            }
+                            else -> {
+                                Icon(
+                                    imageVector = Icons.Default.DarkMode,
+                                    contentDescription = "Switch to Dark",
+                                    tint = p.inkPrimary,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
         }
-        HorizontalDivider(color = p.ruleLine, thickness = 1.dp)
+        HorizontalDivider(color = p.ruleLine.copy(alpha = 0.6f), thickness = 0.5.dp)
     }
 }
 
@@ -409,10 +405,10 @@ private fun DuniyaGeometricMark(
 ) {
     Surface(
         color = chassisColor,
-        shape = RoundedCornerShape(9.dp),
-        modifier = Modifier.size(36.dp)
+        shape = RoundedCornerShape(7.dp),
+        modifier = Modifier.size(28.dp)
     ) {
-        Canvas(modifier = Modifier.fillMaxSize().padding(7.dp)) {
+        Canvas(modifier = Modifier.fillMaxSize().padding(5.dp)) {
             val w = size.width
             val h = size.height
             val prismPath = Path().apply {
@@ -424,17 +420,17 @@ private fun DuniyaGeometricMark(
             drawPath(
                 path = prismPath,
                 color = inkColor,
-                style = Stroke(width = 2.dp.toPx())
+                style = Stroke(width = 1.7.dp.toPx())
             )
             drawLine(
                 color = vermilionColor,
                 start = Offset(w * 0.5f, h * 0.14f),
                 end = Offset(w * 0.5f, h * 0.86f),
-                strokeWidth = 2.dp.toPx()
+                strokeWidth = 1.7.dp.toPx()
             )
             drawCircle(
                 color = vermilionColor,
-                radius = 2.2.dp.toPx(),
+                radius = 1.8.dp.toPx(),
                 center = Offset(w * 0.5f, h * 0.12f)
             )
         }
@@ -457,52 +453,54 @@ private fun DuniyaBottomBar(
             .fillMaxWidth()
             .background(p.sheetSurface)
     ) {
-        HorizontalDivider(color = p.ruleLine, thickness = 1.dp)
+        HorizontalDivider(color = p.ruleLine.copy(alpha = 0.6f), thickness = 0.5.dp)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 6.dp),
+                .padding(horizontal = 8.dp, vertical = 4.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
             val items = listOf(
                 Triple(DuniyaTab.RESEARCH, "Research", Icons.AutoMirrored.Filled.MenuBook),
-                Triple(DuniyaTab.CORPUS, "50GB Packs", Icons.Default.Storage),
-                Triple(DuniyaTab.BENCHMARK, "1B vs MoE", Icons.Default.Analytics),
-                Triple(DuniyaTab.AIRGAP, "Airgap Audit", Icons.Default.Security)
+                Triple(DuniyaTab.CORPUS, "Vault", Icons.Default.Storage),
+                Triple(DuniyaTab.BENCHMARK, "Benchmarks", Icons.Default.Analytics),
+                Triple(DuniyaTab.AIRGAP, "Airgap", Icons.Default.Security)
             )
 
             items.forEach { (tab, label, icon) ->
                 val isSelected = selectedTab == tab
-                val bg = if (isSelected) p.vermilionSoft else Color.Transparent
                 val contentColor = if (isSelected) p.vermilion else p.inkMuted
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .weight(1f)
-                        .clip(RoundedCornerShape(10.dp))
+                        .clip(RoundedCornerShape(8.dp))
                         .clickable { onSelectTab(tab) }
-                        .padding(vertical = 4.dp)
+                        .padding(vertical = 3.dp)
                 ) {
                     Box(
                         modifier = Modifier
-                            .background(bg, RoundedCornerShape(14.dp))
-                            .padding(horizontal = 14.dp, vertical = 4.dp),
+                            .background(
+                                if (isSelected) p.vermilionSoft else Color.Transparent,
+                                RoundedCornerShape(12.dp)
+                            )
+                            .padding(horizontal = 12.dp, vertical = 3.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = icon,
                             contentDescription = label,
                             tint = contentColor,
-                            modifier = Modifier.size(19.dp)
+                            modifier = Modifier.size(18.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.height(2.dp))
+                    Spacer(modifier = Modifier.height(1.dp))
                     Text(
                         text = label,
-                        fontSize = 11.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        fontSize = 10.5.sp,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                         color = if (isSelected) p.inkPrimary else p.inkMuted,
                         maxLines = 1
                     )
@@ -513,7 +511,7 @@ private fun DuniyaBottomBar(
 }
 
 // ============================================================================
-// TAB 1: RESEARCH MONOGRAPH & SILICON INSTRUMENT WORKSPACE
+// TAB 1: CLEAN RESEARCH WORKSPACE FOR SCIENTISTS & RESEARCHERS
 // ============================================================================
 
 @Composable
@@ -527,56 +525,16 @@ private fun ResearchMonographWorkspace(
     // Sub-section tab inside the Research Report:
     // 0 = Monograph Synthesis, 1 = Comparison Matrix, 2 = Equations & Proofs, 3 = vs. 1B Dense
     var activeReportSection by remember(report?.query) { mutableIntStateOf(0) }
+    var isDieExpanded by remember(report?.query) { mutableStateOf(false) }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // 1. Archival Field Dossier Selector Strip
+        // 1. Sleek Search Omnibar
         item {
-            Column {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "FIELD DOSSIERS · MULTI-HOP BENCHMARKS",
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = p.inkMuted
-                    )
-                    Text(
-                        text = "6 Domains Offline",
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 10.sp,
-                        color = p.vermilion
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    itemsIndexed(
-                        DuniyaResearchCorpus.hardBenchmarkPrompts,
-                        key = { _, it -> it.id }
-                    ) { index, bp ->
-                        ArchivalDossierCard(
-                            indexNumber = index + 1,
-                            benchmark = bp,
-                            isSelected = uiState.queryInput == bp.prompt,
-                            onClick = { viewModel.runBenchmarkPrompt(bp) }
-                        )
-                    }
-                }
-            }
-        }
-
-        // 2. Tactile Research Composer Sheet
-        item {
-            TactileQueryComposerCard(
+            ResearchOmnibar(
                 uiState = uiState,
                 onQueryChange = { viewModel.updateQueryInput(it) },
                 onSelectMode = { mode ->
@@ -591,13 +549,43 @@ private fun ResearchMonographWorkspace(
             )
         }
 
+        // 2. Horizontal Topic Suggestion Pills (Field Dossiers)
+        item {
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(
+                    DuniyaResearchCorpus.hardBenchmarkPrompts,
+                    key = { it.id }
+                ) { bp ->
+                    ResearchTopicChip(
+                        title = bp.title,
+                        isSelected = uiState.queryInput == bp.prompt,
+                        onClick = { viewModel.runBenchmarkPrompt(bp) }
+                    )
+                }
+            }
+        }
+
         if (report != null) {
-            // 3. Matte Anodized Silicon Instrument: 8x8 Expert Wafer Die + Hop Trace
+            // 3. Compact 1-Line Execution Summary Pill (Collapsible Die)
             item {
-                SiliconMoEDieInstrument(report = report)
+                ExecutionTelemetryStrip(
+                    report = report,
+                    vmRssMb = uiState.kernelTelemetry.vmRssMb,
+                    isDieExpanded = isDieExpanded,
+                    onToggleDie = { isDieExpanded = !isDieExpanded }
+                )
             }
 
-            // 4. Native Segmented Report Section Switcher
+            // 4. Expanded 8x8 Die (Shown only when researcher taps "8×8 Die")
+            if (isDieExpanded) {
+                item {
+                    SiliconMoEDieInstrument(report = report)
+                }
+            }
+
+            // 5. Clean Segmented Report Switcher
             item {
                 val matrixCount = report.comparisonTable?.entityHeaders?.size ?: 0
                 val eqCount = report.sourceArticles.size
@@ -609,10 +597,10 @@ private fun ResearchMonographWorkspace(
                 )
             }
 
-            // 5. Active Report Section Content
+            // 6. Active Report Section Content
             when (activeReportSection) {
                 0 -> {
-                    // EXECUTIVE MONOGRAPH SYNTHESIS
+                    // MONOGRAPH SYNTHESIS
                     item {
                         MonographThesisSheet(
                             report = report,
@@ -624,12 +612,12 @@ private fun ResearchMonographWorkspace(
                         )
                     }
 
-                    // DEEP TECHNICAL MECHANISMS (Editorial Accordion Cards)
+                    // TECHNICAL MECHANISMS
                     itemsIndexed(report.sections) { idx, section ->
                         EditorialMechanismSheet(index = idx + 1, section = section)
                     }
 
-                    // ARCHIVAL CITATIONS & VERIFIED SOURCES
+                    // CITATIONS & VERIFIED SOURCES
                     item {
                         ArchivalCitationsSheet(
                             report = report,
@@ -639,7 +627,7 @@ private fun ResearchMonographWorkspace(
                 }
 
                 1 -> {
-                    // MULTI-ENTITY COMPARISON & SPECIFICATION MATRIX
+                    // COMPARISON MATRIX
                     if (report.comparisonTable != null) {
                         item {
                             ArchivalComparisonMatrixSheet(table = report.comparisonTable)
@@ -654,7 +642,7 @@ private fun ResearchMonographWorkspace(
                 }
 
                 2 -> {
-                    // FIRST-PRINCIPLES EQUATIONS & CONSTANTS
+                    // EQUATIONS & CONSTANTS
                     item {
                         ArchivalEquationsSheet(report = report)
                     }
@@ -664,7 +652,7 @@ private fun ResearchMonographWorkspace(
                 }
 
                 3 -> {
-                    // 1B DENSE FAILURE DIAGNOSTIC VS. DUNIYA SPARSE MoE
+                    // 1B DENSE FAILURE DIAGNOSTIC
                     item {
                         OneBModelDiagnosticSheet(report = report)
                     }
@@ -685,73 +673,48 @@ private fun ResearchMonographWorkspace(
 }
 
 @Composable
-private fun ArchivalDossierCard(
-    indexNumber: Int,
-    benchmark: HardBenchmarkPrompt,
+private fun ResearchTopicChip(
+    title: String,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
     val p = LocalDuniyaPalette.current
-    val borderColor = if (isSelected) p.vermilion else p.ruleLine
-    val containerColor = if (isSelected) p.sheetSurface else p.elevatedCard
-
     Surface(
-        color = containerColor,
-        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) p.vermilionSoft else p.sheetSurface,
+        shape = RoundedCornerShape(16.dp),
         modifier = Modifier
-            .width(236.dp)
-            .border(if (isSelected) 1.5.dp else 1.dp, borderColor, RoundedCornerShape(12.dp))
+            .border(
+                1.dp,
+                if (isSelected) p.vermilion else p.ruleLine.copy(alpha = 0.7f),
+                RoundedCornerShape(16.dp)
+            )
             .clickable { onClick() }
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "0$indexNumber / ${benchmark.category.uppercase()}",
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isSelected) p.vermilion else p.inkMuted,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (isSelected) {
+                Box(
+                    modifier = Modifier
+                        .size(5.dp)
+                        .background(p.vermilion, CircleShape)
                 )
-                if (isSelected) {
-                    Box(
-                        modifier = Modifier
-                            .size(7.dp)
-                            .background(p.vermilion, CircleShape)
-                    )
-                }
+                Spacer(modifier = Modifier.width(6.dp))
             }
-            Spacer(modifier = Modifier.height(5.dp))
             Text(
-                text = benchmark.title,
-                fontFamily = FontFamily.Serif,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
-                color = p.inkPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(3.dp))
-            Text(
-                text = benchmark.prompt,
-                fontSize = 11.sp,
-                color = p.inkSecondary,
-                maxLines = 2,
-                lineHeight = 15.sp,
-                overflow = TextOverflow.Ellipsis
+                text = title,
+                fontSize = 11.5.sp,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (isSelected) p.vermilion else p.inkPrimary,
+                maxLines = 1
             )
         }
     }
 }
 
 @Composable
-private fun TactileQueryComposerCard(
+private fun ResearchOmnibar(
     uiState: DuniyaUiState,
     onQueryChange: (String) -> Unit,
     onSelectMode: (ResearchMode) -> Unit,
@@ -759,52 +722,33 @@ private fun TactileQueryComposerCard(
 ) {
     val p = LocalDuniyaPalette.current
 
-    Surface(
-        color = p.sheetSurface,
-        shape = RoundedCornerShape(14.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(1.dp, p.ruleLine, RoundedCornerShape(14.dp))
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Surface(
+            color = p.sheetSurface,
+            shape = RoundedCornerShape(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .border(1.dp, p.ruleLine, RoundedCornerShape(16.dp))
+        ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "RESEARCH INQUIRY",
-                    fontFamily = FontFamily.Monospace,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = p.inkMuted
-                )
-                if (uiState.queryInput.isNotEmpty()) {
-                    Text(
-                        text = "Clear",
-                        fontFamily = FontFamily.Monospace,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = p.vermilion,
-                        modifier = Modifier.clickable { onQueryChange("") }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // Recessed Editorial Query Well
-            Surface(
-                color = p.recessedWell,
-                shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, p.ruleLine, RoundedCornerShape(10.dp))
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Search",
+                    tint = p.inkMuted,
+                    modifier = Modifier.size(19.dp)
+                )
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                Box(modifier = Modifier.weight(1f)) {
                     if (uiState.queryInput.isEmpty()) {
                         Text(
-                            text = "Ask a multi-entity comparison, mathematical derivation, or survival protocol...",
+                            text = "Ask any research question (e.g. CRISPR, MoE)...",
                             fontSize = 14.sp,
                             fontFamily = FontFamily.Serif,
                             fontStyle = FontStyle.Italic,
@@ -817,7 +761,7 @@ private fun TactileQueryComposerCard(
                         textStyle = TextStyle(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Medium,
-                            fontSize = 14.sp,
+                            fontSize = 14.5.sp,
                             lineHeight = 20.sp,
                             color = p.inkPrimary
                         ),
@@ -826,80 +770,148 @@ private fun TactileQueryComposerCard(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Mode Pills + Tactile Vermilion Action Button
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier
-                        .weight(1f)
-                        .horizontalScroll(rememberScrollState())
-                ) {
-                    val modeLabels = listOf(
-                        Pair(ResearchMode.DEEP_SYNTHESIS, "4-Hop Synthesis"),
-                        Pair(ResearchMode.COMPARE, "Compare Matrix"),
-                        Pair(ResearchMode.MECHANISM, "Equations")
-                    )
-                    modeLabels.forEach { item ->
-                        val mode = item.first
-                        val shortLabel = item.second
-                        val selected = uiState.selectedMode == mode
-                        Surface(
-                            color = if (selected) p.hardwareChassis else p.recessedWell,
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier
-                                .border(
-                                    1.dp,
-                                    if (selected) p.hardwareChassis else p.ruleLine,
-                                    RoundedCornerShape(8.dp)
-                                )
-                                .clickable { onSelectMode(mode) }
-                        ) {
-                            Text(
-                                text = shortLabel,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.SemiBold,
-                                color = if (selected) p.hardwareInk else p.inkSecondary,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                            )
-                        }
+                if (uiState.queryInput.isNotEmpty()) {
+                    IconButton(
+                        onClick = { onQueryChange("") },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Clear",
+                            tint = p.inkMuted,
+                            modifier = Modifier.size(15.dp)
+                        )
                     }
+                    Spacer(modifier = Modifier.width(4.dp))
                 }
-
-                Spacer(modifier = Modifier.width(8.dp))
 
                 Surface(
                     color = p.vermilion,
-                    shape = RoundedCornerShape(9.dp),
-                    modifier = Modifier.clickable { onRunResearch() }
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clickable { onRunResearch() }
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Box(contentAlignment = Alignment.Center) {
                         if (uiState.isRunningQuery) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(13.dp),
+                                modifier = Modifier.size(14.dp),
                                 strokeWidth = 2.dp,
                                 color = Color.White
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                        } else {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = "Synthesize",
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
                         }
-                        Text(
-                            text = "Synthesize",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
                     }
                 }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(7.dp))
+
+        // Clean Mode Filter Pills
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            val modes = listOf(
+                Pair(ResearchMode.DEEP_SYNTHESIS, "Synthesis"),
+                Pair(ResearchMode.COMPARE, "Comparison"),
+                Pair(ResearchMode.MECHANISM, "Equations")
+            )
+            modes.forEach { (mode, label) ->
+                val isSelected = uiState.selectedMode == mode
+                Surface(
+                    color = if (isSelected) p.vermilionSoft else Color.Transparent,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier
+                        .border(
+                            1.dp,
+                            if (isSelected) p.vermilion.copy(alpha = 0.4f) else p.ruleLine.copy(alpha = 0.5f),
+                            RoundedCornerShape(10.dp)
+                        )
+                        .clickable { onSelectMode(mode) }
+                ) {
+                    Text(
+                        text = label,
+                        fontSize = 11.sp,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                        color = if (isSelected) p.vermilion else p.inkSecondary,
+                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExecutionTelemetryStrip(
+    report: ResearchSynthesisReport,
+    vmRssMb: Double,
+    isDieExpanded: Boolean,
+    onToggleDie: () -> Unit
+) {
+    val p = LocalDuniyaPalette.current
+    val tel = report.moeTelemetry
+    val totalHopMs = remember(report) { report.hopTrace.sumOf { it.latencyMs } }
+
+    Surface(
+        color = p.sheetSurface,
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, p.ruleLine.copy(alpha = 0.7f), RoundedCornerShape(12.dp))
+            .clickable { onToggleDie() }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 7.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .background(Color(0xFF38C98E), CircleShape)
+                )
+                Spacer(modifier = Modifier.width(7.dp))
+                Text(
+                    text = "${tel.topExperts.size.coerceAtLeast(2)}/64 MoE · ${"%.1f".format(tel.effectiveTokensPerSec)} tok/s · ${"%.0f".format(vmRssMb)} MB · ${"%.0f".format(totalHopMs)}ms",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = p.inkPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Spacer(modifier = Modifier.width(6.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = if (isDieExpanded) "Hide Die" else "8×8 Die",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = p.vermilion
+                )
+                Icon(
+                    imageVector = if (isDieExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = null,
+                    tint = p.vermilion,
+                    modifier = Modifier.size(15.dp)
+                )
             }
         }
     }
@@ -1197,38 +1209,34 @@ private fun ReportSectionSegmentedBar(
 
     Surface(
         color = p.recessedWell,
-        shape = RoundedCornerShape(11.dp),
+        shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .border(1.dp, p.ruleLine, RoundedCornerShape(11.dp))
+            .border(0.5.dp, p.ruleLine.copy(alpha = 0.7f), RoundedCornerShape(12.dp))
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(4.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                .padding(3.dp),
+            horizontalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             tabs.forEachIndexed { idx, title ->
                 val isSelected = selectedIndex == idx
                 Surface(
                     color = if (isSelected) p.sheetSurface else Color.Transparent,
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(9.dp),
                     modifier = Modifier
                         .weight(1f)
-                        .then(
-                            if (isSelected) Modifier.border(1.dp, p.ruleLine, RoundedCornerShape(8.dp))
-                            else Modifier
-                        )
                         .clickable { onSelectIndex(idx) }
                 ) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.padding(vertical = 7.dp, horizontal = 4.dp)
+                        modifier = Modifier.padding(vertical = 7.dp, horizontal = 2.dp)
                     ) {
                         Text(
                             text = title,
-                            fontSize = 11.sp,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            fontSize = 11.5.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                             color = if (isSelected) p.vermilion else p.inkSecondary,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -1260,67 +1268,75 @@ private fun MonographThesisSheet(
             .fillMaxWidth()
             .border(1.dp, p.ruleLine, RoundedCornerShape(14.dp))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            // Archival Folio Header
+        Column(modifier = Modifier.padding(18.dp)) {
+            val primaryArticle = report.sourceArticles.firstOrNull()
+            val primaryTitle = primaryArticle?.title ?: "Multi-Domain Research Synthesis"
+            val domain = primaryArticle?.domain?.uppercase() ?: "SYSTEMS & ALGORITHMS"
+
+            // Metadata row: Domain + Verified offline sources
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .width(3.dp)
-                            .height(14.dp)
-                            .background(p.vermilion, RoundedCornerShape(2.dp))
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "EXECUTIVE MONOGRAPH SYNTHESIS",
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 10.sp,
-                        color = p.vermilion
-                    )
-                }
-                Surface(
-                    color = p.verdigrisSoft,
-                    shape = RoundedCornerShape(6.dp)
-                ) {
-                    Text(
-                        text = "${report.sourceArticles.size} Verified Corpora",
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 9.sp,
-                        color = p.verdigris,
-                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
-                    )
-                }
+                Text(
+                    text = "DOMAIN: $domain",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = p.vermilion
+                )
+                Text(
+                    text = "${report.sourceArticles.size} verified offline sources",
+                    fontFamily = FontFamily.Monospace,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = p.verdigris
+                )
             }
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            val primaryTitle = report.sourceArticles.firstOrNull()?.title ?: "Multi-Domain Synthesis"
             Text(
                 text = primaryTitle,
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.Bold,
-                fontSize = 19.sp,
-                lineHeight = 25.sp,
+                fontSize = 21.sp,
+                lineHeight = 28.sp,
+                letterSpacing = (-0.3).sp,
                 color = p.inkPrimary
             )
 
             Spacer(modifier = Modifier.height(10.dp))
-            HorizontalDivider(color = p.ruleLine)
-            Spacer(modifier = Modifier.height(10.dp))
+            HorizontalDivider(color = p.ruleLine.copy(alpha = 0.7f), thickness = 0.5.dp)
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Richly Formatted Markdown Body (No raw ** asterisks!)
-            RichEditorialText(
-                text = report.executiveThesis,
-                fontSize = 14.sp,
-                lineHeight = 22.sp,
-                color = p.inkPrimary
-            )
+            // Executive Synthesis Callout
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Box(
+                    modifier = Modifier
+                        .width(3.dp)
+                        .height(36.dp)
+                        .background(p.vermilion, RoundedCornerShape(1.5.dp))
+                )
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "EXECUTIVE FINDINGS",
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 9.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = p.inkMuted
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    RichEditorialText(
+                        text = report.executiveThesis,
+                        fontSize = 14.sp,
+                        lineHeight = 22.sp,
+                        color = p.inkPrimary
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(14.dp))
 
@@ -1333,7 +1349,7 @@ private fun MonographThesisSheet(
             ) {
                 if (report.comparisonTable != null) {
                     QuickJumpChip(
-                        label = "Inspect ${report.comparisonTable.entityHeaders.size}-Entity Matrix ->",
+                        label = "Matrix (${report.comparisonTable.entityHeaders.size} entities) ->",
                         bgColor = p.vermilionSoft,
                         textColor = p.vermilion,
                         onClick = onJumpToMatrix
@@ -1346,7 +1362,7 @@ private fun MonographThesisSheet(
                     onClick = onJumpToEquations
                 )
                 QuickJumpChip(
-                    label = "Why 1B Dense Fails ->",
+                    label = "1B Dense Failure Diagnostic ->",
                     bgColor = p.crimsonSoft,
                     textColor = p.crimson,
                     onClick = onJumpTo1BContrast
@@ -1534,7 +1550,7 @@ private fun ArchivalComparisonMatrixSheet(table: ComparisonTableData) {
                         // Header Row
                         Row(
                             modifier = Modifier
-                                .background(p.hardwareChassis)
+                                .background(p.recessedWell)
                                 .padding(vertical = 10.dp, horizontal = 10.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -1543,7 +1559,7 @@ private fun ArchivalComparisonMatrixSheet(table: ComparisonTableData) {
                                 fontFamily = FontFamily.Monospace,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFE59F38),
+                                color = p.vermilion,
                                 modifier = Modifier.width(145.dp)
                             )
                             table.entityHeaders.forEach { header ->
@@ -1552,7 +1568,7 @@ private fun ArchivalComparisonMatrixSheet(table: ComparisonTableData) {
                                     fontFamily = FontFamily.Serif,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = p.hardwareInk,
+                                    color = p.inkPrimary,
                                     modifier = Modifier
                                         .width(195.dp)
                                         .padding(horizontal = 8.dp)
@@ -1642,7 +1658,7 @@ private fun ArchivalEquationsSheet(report: ResearchSynthesisReport) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Surface(
-                                color = p.hardwareChassis,
+                                color = p.brassSoft,
                                 shape = RoundedCornerShape(5.dp)
                             ) {
                                 Text(
@@ -1650,7 +1666,7 @@ private fun ArchivalEquationsSheet(report: ResearchSynthesisReport) {
                                     fontFamily = FontFamily.Monospace,
                                     fontSize = 9.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFE59F38),
+                                    color = p.brass,
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
                                 )
                             }
@@ -1886,14 +1902,14 @@ private fun CorpusAndPackManagerScreen(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // Anodized Hardware Storage Module
+        // Storage Vault Header Module
         item {
             Surface(
-                color = p.hardwareChassis,
+                color = p.sheetSurface,
                 shape = RoundedCornerShape(14.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, p.hardwareRule, RoundedCornerShape(14.dp))
+                    .border(1.dp, p.ruleLine, RoundedCornerShape(14.dp))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(
@@ -1902,11 +1918,11 @@ private fun CorpusAndPackManagerScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "50 GB UFS FLASH STORAGE BUDGET",
+                            text = "50 GB STORAGE VAULT",
                             fontFamily = FontFamily.Monospace,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFFE59F38),
+                            color = p.vermilion,
                             modifier = Modifier.weight(1f)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -1915,7 +1931,7 @@ private fun CorpusAndPackManagerScreen(
                             fontFamily = FontFamily.Monospace,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF38C98E),
+                            color = p.verdigris,
                             maxLines = 1
                         )
                     }
@@ -1926,22 +1942,22 @@ private fun CorpusAndPackManagerScreen(
                         progress = { (usedMb / 50000.0).toFloat().coerceIn(0.02f, 1.0f) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(7.dp)
-                            .clip(RoundedCornerShape(4.dp)),
-                        color = Color(0xFFE55B3C),
-                        trackColor = p.hardwareWell
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp)),
+                        color = p.vermilion,
+                        trackColor = p.recessedWell
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
 
                     uiState.installedPacks.forEach { pack ->
                         Surface(
-                            color = p.hardwareWell,
+                            color = p.recessedWell,
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 4.dp)
-                                .border(1.dp, p.hardwareRule, RoundedCornerShape(10.dp))
+                                .border(1.dp, p.ruleLine.copy(alpha = 0.7f), RoundedCornerShape(10.dp))
                         ) {
                             Row(
                                 modifier = Modifier.padding(12.dp),
@@ -1953,26 +1969,26 @@ private fun CorpusAndPackManagerScreen(
                                         text = "${pack.category.uppercase()} · ${pack.format}",
                                         fontFamily = FontFamily.Monospace,
                                         fontSize = 9.sp,
-                                        color = Color(0xFFE59F38),
+                                        color = p.vermilion,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Spacer(modifier = Modifier.height(2.dp))
                                     Text(
                                         text = pack.name,
-                                        fontSize = 12.sp,
+                                        fontSize = 13.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = p.hardwareInk
+                                        color = p.inkPrimary
                                     )
                                     Text(
                                         text = "${"%.2f".format(pack.sizeBytes / (1024.0 * 1024.0))} MB · ${pack.articleOrTensorCount} indexed units",
                                         fontFamily = FontFamily.Monospace,
                                         fontSize = 10.sp,
-                                        color = p.hardwareMuted
+                                        color = p.inkMuted
                                     )
                                 }
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Surface(
-                                    color = Color(0xFF143327),
+                                    color = p.verdigrisSoft,
                                     shape = RoundedCornerShape(6.dp)
                                 ) {
                                     Text(
@@ -1980,7 +1996,7 @@ private fun CorpusAndPackManagerScreen(
                                         fontFamily = FontFamily.Monospace,
                                         fontSize = 9.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF38C98E),
+                                        color = p.verdigris,
                                         modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp)
                                     )
                                 }
@@ -1994,7 +2010,7 @@ private fun CorpusAndPackManagerScreen(
                             text = uiState.lastGgufInspectMessage,
                             fontFamily = FontFamily.Monospace,
                             fontSize = 10.5.sp,
-                            color = Color(0xFF38C98E)
+                            color = p.verdigris
                         )
                     }
 
@@ -2018,8 +2034,8 @@ private fun CorpusAndPackManagerScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "Mount GGUF v3 Shard",
-                                fontSize = 11.sp,
+                                text = "Scan & Mount Packs",
+                                fontSize = 11.5.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
@@ -2034,14 +2050,14 @@ private fun CorpusAndPackManagerScreen(
                             Icon(
                                 Icons.Default.FolderOpen,
                                 contentDescription = null,
-                                tint = p.hardwareInk,
+                                tint = p.inkPrimary,
                                 modifier = Modifier.size(15.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "Import .GGUF / .JSON",
-                                fontSize = 11.sp,
-                                color = p.hardwareInk
+                                text = "Import External",
+                                fontSize = 11.5.sp,
+                                color = p.inkPrimary
                             )
                         }
                     }

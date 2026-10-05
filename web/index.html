@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Duniya ⛺ — 100% Offline AI Research Engine & Ethereum Silver Glassmorphism</title>
+  <meta name="description" content="Offline Sparse-MoE AI research engine companion inspired by Vitalik Buterin's phone architecture, featuring Ethereum Silver Glassmorphism and zero cloud dependence.">
+  <meta name="theme-color" content="#07080E">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><polygon points='12,1 4,13 12,16.5' fill='%23C0C4CC'/><polygon points='12,1 12,16.5 20,13' fill='%23627EEA'/><polygon points='12,17.5 4,14 12,23' fill='%238A92B2'/><polygon points='12,17.5 12,23 20,14' fill='%238C9EFF'/></svg>">
+</head>
+<body>
+
+  <div class="duniya-app">
+
+    <!-- Masthead -->
+    <header class="masthead">
+      <div class="brand-group">
+        <div class="eth-diamond-badge" title="Ethereum Silver Glassmorphic Kernel">
+          <svg class="eth-diamond-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Top Left Facet (Liquid Silver) -->
+            <polygon points="12,2 4.5,13 12,16.5" fill="url(#silverGrad1)" opacity="0.95" />
+            <!-- Top Right Facet (Ethereum Blue) -->
+            <polygon points="12,2 12,16.5 19.5,13" fill="url(#ethGrad1)" opacity="0.95" />
+            <!-- Bottom Left Facet (Muted Slate Silver) -->
+            <polygon points="12,17.5 4.5,14 12,23" fill="url(#silverGrad2)" opacity="0.85" />
+            <!-- Bottom Right Facet (Electric Indigo) -->
+            <polygon points="12,17.5 12,23 19.5,14" fill="url(#ethGrad2)" opacity="0.95" />
+
+            <defs>
+              <linearGradient id="silverGrad1" x1="4.5" y1="2" x2="12" y2="16.5" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#FFFFFF" />
+                <stop offset="50%" stop-color="#E2E8F0" />
+                <stop offset="100%" stop-color="#94A3B8" />
+              </linearGradient>
+              <linearGradient id="ethGrad1" x1="12" y1="2" x2="19.5" y2="16.5" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#8C9EFF" />
+                <stop offset="100%" stop-color="#627EEA" />
+              </linearGradient>
+              <linearGradient id="silverGrad2" x1="4.5" y1="14" x2="12" y2="23" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#CBD5E1" />
+                <stop offset="100%" stop-color="#64748B" />
+              </linearGradient>
+              <linearGradient id="ethGrad2" x1="12" y1="17.5" x2="19.5" y2="23" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#748EFA" />
+                <stop offset="100%" stop-color="#454A75" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        <div class="brand-titles">
+          <div class="brand-title">Duniya <span class="brand-tent">⛺</span></div>
+          <div class="brand-subtitle">Offline Silicon • Vitalik Bounty Edition</div>
+        </div>
+      </div>
+
+      <!-- Telemetry Strip -->
+      <div class="telemetry-strip">
+        <div class="status-pill offline" title="Hardware Airgap Integrity">
+          <span class="pulse-dot"></span>
+          100% Offline
+        </div>
+        <div class="status-pill eth-pill" title="Resident RAM Footprint">
+          0 Net • <span id="telemetryRam">194 MB</span> RSS
+        </div>
+        <div class="status-pill" title="Memory-Mapped Flash Throughput">
+          UFS 4.0: 4.2 GB/s
+        </div>
+        <button id="audioToggleBtn" class="status-pill" style="cursor: pointer;" title="Toggle Synthesizer Audio Feedback">
+          Audio: OFF
+        </button>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="app-nav" aria-label="Main Navigation">
+      <button class="nav-btn active" data-tab="lab">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10 2v7.31L4.14 19.3A2 2 0 0 0 6 22h12a2 2 0 0 0 1.86-2.7L14 9.31V2"></path>
+          <path d="M8.5 2h7"></path>
+        </svg>
+        Research Lab
+      </button>
+
+      <button class="nav-btn" data-tab="benchmarks">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+        </svg>
+        1B vs MoE Benchmarks
+      </button>
+
+      <button class="nav-btn" data-tab="vault">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+          <line x1="12" y1="22.08" x2="12" y2="12"></line>
+        </svg>
+        50GB Vault
+      </button>
+
+      <button class="nav-btn" data-tab="airgap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+        Airgap Audit
+      </button>
+    </nav>
+
+    <!-- Section 1: Research Lab (Main Workspace) -->
+    <main id="labSection" style="display: contents;">
+      
+      <!-- Research Omnibar -->
+      <section class="glass-card omnibar-card">
+        <div class="omnibar-row">
+          <svg class="omnibar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+
+          <input 
+            type="text" 
+            id="omnibarInput" 
+            class="omnibar-input" 
+            placeholder="Inquire across Cryptography, Sparse MoE, Biotech, Physics, or History..." 
+            value="Groth16 vs PLONK vs STARKs vs Binius"
+            autocomplete="off"
+            spellcheck="false"
+          />
+
+          <button id="synthesizeBtn" class="synthesize-btn">
+            <span>Synthesize</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Quick Query Chips -->
+        <div class="quick-chips-row" id="quickChipsRow">
+          <span class="chips-label">Field Dossiers:</span>
+          <button class="quick-chip" data-query="Groth16 vs PLONK vs STARKs vs Binius">ZK Proofs & Binius</button>
+          <button class="quick-chip" data-query="Flash-Streamed Sparse MoE + N-Gram Memory Architecture">Sparse MoE & Engram</button>
+          <button class="quick-chip" data-query="PeerDAS, Danksharding & 2D KZG Data Availability Sampling">PeerDAS & Blobs</button>
+          <button class="quick-chip" data-query="Stateless Ethereum Clients: Verkle Trees vs Binary Merkle + STARKs">Stateless Verkle</button>
+          <button class="quick-chip" data-query="CRISPR-Cas9 vs Base Editing vs Prime Editing">CRISPR vs Prime Editing</button>
+          <button class="quick-chip" data-query="Tokamak vs Stellarator Fusion & Lawson Triple Product">Tokamak vs Stellarator</button>
+          <button class="quick-chip" data-query="High-Altitude HAPE vs HACE Field Triage & Pharmacology">Austere HAPE / HACE</button>
+          <button class="quick-chip" data-query="Why Eastern Rome Survived the 5th-Century Collapse">Byzantium Fiscal Surplus</button>
+        </div>
+      </section>
+
+      <!-- 8x8 Wafer Die Hardware Telemetry -->
+      <section class="glass-card wafer-die-container">
+        <header class="wafer-header">
+          <div class="wafer-title-group">
+            <div class="wafer-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="2" width="20" height="20" rx="4"></rect>
+                <line x1="6" y1="2" x2="6" y2="6"></line>
+                <line x1="18" y1="2" x2="18" y2="6"></line>
+                <line x1="6" y1="18" x2="6" y2="22"></line>
+                <line x1="18" y1="18" x2="18" y2="22"></line>
+                <line x1="2" y1="6" x2="6" y2="6"></line>
+                <line x1="2" y1="18" x2="6" y2="18"></line>
+                <line x1="18" y1="6" x2="22" y2="6"></line>
+                <line x1="18" y1="18" x2="22" y2="18"></line>
+              </svg>
+              8×8 Silicon Wafer Die Router
+            </div>
+            <span class="wafer-spec">64 Disjoint Expert Blocks • UFS 4.0 Flash-Streamed</span>
+          </div>
+
+          <div class="wafer-telemetry-stats">
+            <div class="stat-item">
+              <span class="stat-label">Active:</span>
+              <span class="stat-value highlight" id="activeExpertsCount">4/64 MoE</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Throughput:</span>
+              <span class="stat-value mint" id="telemetrySpeed">28.5 tok/s</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">Latency:</span>
+              <span class="stat-value" id="telemetryLatency">842ms</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">MMap Hit:</span>
+              <span class="stat-value mint">99.8%</span>
+            </div>
+          </div>
+        </header>
+
+        <!-- 8x8 Grid of 64 Experts -->
+        <div class="wafer-grid-wrapper" id="waferGrid" aria-label="8x8 Expert Grid">
+          <!-- Rendered dynamically by app.js -->
+        </div>
+      </section>
+
+      <!-- Monograph Reader Canvas -->
+      <section id="monographContainer">
+        <!-- Rendered dynamically by app.js -->
+      </section>
+
+    </main>
+
+    <!-- Section 2: 1B vs MoE Benchmarks View -->
+    <section id="benchmarksContainer" style="display: none; flex-direction: column; gap: 1.5rem;">
+      <!-- Rendered dynamically by app.js -->
+    </section>
+
+    <!-- Section 3: 50GB Knowledge Vault View -->
+    <section id="vaultContainer" style="display: none; flex-direction: column; gap: 1.5rem;">
+      <!-- Rendered dynamically by app.js -->
+    </section>
+
+    <!-- Section 4: Airgap Security Audit View -->
+    <section id="airgapContainer" style="display: none; flex-direction: column; gap: 1.5rem;">
+      <!-- Rendered dynamically by app.js -->
+    </section>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div>
+        <strong>Duniya ⛺</strong> — Built for Vitalik Buterin's Offline Android AI Bounty. Zero remote inference.
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/gabrieltemtsen/duniya" target="_blank" rel="noopener">GitHub Source</a>
+        <span>•</span>
+        <a href="../app/build/outputs/apk/debug/app-debug.apk" download>Download Android APK</a>
+        <span>•</span>
+        <span>Ethereum Silver Glassmorphic Design System</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

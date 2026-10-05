@@ -1,0 +1,16 @@
+{
+  "name": "Duniya ⛺ Offline Research Engine",
+  "short_name": "Duniya",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#07080E",
+  "theme_color": "#07080E",
+  "description": "100% Offline AI Research Companion with Ethereum Silver Glassmorphism",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><polygon points='12,1 4,13 12,16.5' fill='%23C0C4CC'/><polygon points='12,1 12,16.5 20,13' fill='%23627EEA'/><polygon points='12,17.5 4,14 12,23' fill='%238A92B2'/><polygon points='12,17.5 12,23 20,14' fill='%238C9EFF'/></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
