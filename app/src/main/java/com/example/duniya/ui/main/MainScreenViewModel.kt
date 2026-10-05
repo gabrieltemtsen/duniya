@@ -54,9 +54,9 @@ data class SecurityAuditReport(
     val googlePlayServicesRequired: Boolean = false,
     val requestedPermissions: List<String> = emptyList(),
     val ramUsedMb: Double = 142.0,
-    val ramBudgetMaxMb: Double = 12288.0, // 12 GB Bounty Cap
+    val ramBudgetMaxMb: Double = 12288.0, // 12 GB RAM Budget Cap
     val diskUsedBytes: Long = 23_860_096L,
-    val diskBudgetMaxBytes: Long = 50L * 1024L * 1024L * 1024L // 50 GB Bounty Cap
+    val diskBudgetMaxBytes: Long = 50L * 1024L * 1024L * 1024L // 50 GB Storage Budget Cap
 )
 
 data class DuniyaUiState(

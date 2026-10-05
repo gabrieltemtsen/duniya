@@ -1,7 +1,7 @@
 # Duniya ⛺ — The Offline Sparse-MoE + N-Gram + Hybrid RAG Research Engine for Android & GrapheneOS
 
-> **Built for the "Build the Best Offline AI Research App for Android ⛺" Challenge**  
-> Inspired by [Vitalik Buterin's post](https://x.com/VitalikButerin/status/2100695863026954698):  
+> **An open-source, air-gapped community research engine for Android & GrapheneOS.**  
+> Inspired by [Vitalik Buterin's thesis on offline mobile research](https://x.com/VitalikButerin/status/2100695863026954698):  
 > *"Build a casual info lookup and research tool that runs entirely offline on Android and is >50% as good as internet search + frontier AI models... His past attempts got ~10 tokens/sec from 1B models that break on anything interesting. He suggests extreme MoE might be the right architecture for phones (including newer variants like n-gram models): something like ~100B params, most living on disk, with <1B activated per token."*
 
 ---
@@ -74,9 +74,9 @@ A 1B dense transformer on a smartphone faces two fundamental information-theoret
 
 ---
 
-## Strict Compliance with Every Challenge Requirement
+## Core Architectural Specifications & Hardware Standards
 
-| Requirement | How Duniya Satisfies & Verifies It |
+| Specification | How Duniya Implements & Guarantees It |
 | :--- | :--- |
 | **Runs on Android & GrapheneOS** | Targets API 29–36 (`arm64-v8a` & `x86_64`), compiled with **16KB ELF page alignment** (`-Wl,-z,max-page-size=16384`) for modern Pixel / GrapheneOS hardware. |
 | **Zero Google Play Services** | `0` Play Services (`com.google.android.gms`) dependencies. Verified on pure AOSP / GrapheneOS system images. |

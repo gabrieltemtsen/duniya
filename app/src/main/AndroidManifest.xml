@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!--
-      STRICT HARDWARE AIRGAP GUARANTEE (GrapheneOS & Android Bounty Compliance):
+      STRICT HARDWARE AIRGAP GUARANTEE (GrapheneOS & Android Security Architecture):
       Explicitly strip INTERNET and ACCESS_NETWORK_STATE permissions at manifest merge time.
       Without AID_INET (3003) in the process supplemental groups, the Linux kernel blocks
       all AF_INET / AF_INET6 socket creation (EACCES / EPERM).

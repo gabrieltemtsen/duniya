@@ -2684,7 +2684,7 @@ private fun BenchmarkArenaScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "VITALIK BENCHMARK TARGET · >50% FRONTIER QUALITY OFFLINE",
+                        text = "COMMUNITY BENCHMARK TARGET · >50% FRONTIER QUALITY OFFLINE",
                         fontFamily = FontFamily.Monospace,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
@@ -2715,7 +2715,7 @@ private fun BenchmarkArenaScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     BenchmarkScoreBar(
-                        label = "Vitalik Target Bar (>50% of Frontier AI + Web Search)",
+                        label = "Community Target Baseline (>50% of Frontier AI + Web Search)",
                         scorePct = 50,
                         color = p.brass
                     )
