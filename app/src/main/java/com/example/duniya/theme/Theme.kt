@@ -87,7 +87,7 @@ fun DuniyaTheme(
     content: @Composable () -> Unit,
 ) {
     var themeMode by remember { 
-        mutableStateOf(if (initialDarkTheme) ThemeMode.OBSIDIAN else ThemeMode.PAPER) 
+        mutableStateOf(ThemeMode.ETHEREUM_SILVER) 
     }
     val palette = when (themeMode) {
         ThemeMode.PAPER -> ArchivalPaperPalette

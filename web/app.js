@@ -1,26 +1,24 @@
-// Duniya ⛺ — Standalone Offline Web Engine & Ethereum Silver Glassmorphism Controller
+// Duniya ⛺ — Gemini-Style Offline Conversational Research Engine & Silver Glassmorphism
 
 (function () {
   'use strict';
 
   // --- State ---
   const state = {
-    currentTab: 'lab', // 'lab' | 'benchmarks' | 'vault' | 'airgap'
-    currentArticleId: 'zk_binius',
+    history: [],
+    currentQuery: '',
     activeExperts: [3, 11, 24, 48],
     audioEnabled: false,
-    query: '',
-    selectedBenchmark: null,
+    selectedDomain: 'All Domains',
     telemetry: {
       activeTokensSec: 28.5,
       ramMb: 194,
       latencyMs: 842,
-      mmapHitRate: '99.8%',
-      ufsSpeed: '4.2 GB/s'
+      mmapHitRate: '99.8%'
     }
   };
 
-  // --- Sound Effects using Web Audio API (Offline, Zero Assets) ---
+  // --- Sound Effects via Web Audio API (Offline, Zero Assets) ---
   let audioCtx = null;
   function getAudioCtx() {
     if (!audioCtx) {
@@ -46,40 +44,46 @@
       gain.connect(ctx.destination);
       osc.start();
       osc.stop(ctx.currentTime + duration);
-    } catch (e) {
-      // Audio not supported or blocked
-    }
+    } catch (e) {}
   }
 
   function playSynthChord() {
     if (!state.audioEnabled) return;
     [440, 554.37, 659.25, 880].forEach((freq, idx) => {
-      setTimeout(() => playTone(freq, 'triangle', 0.25, 0.02), idx * 40);
+      setTimeout(() => playTone(freq, 'triangle', 0.2, 0.02), idx * 35);
     });
   }
 
   // --- DOM Elements ---
   const el = {
-    omnibarInput: document.getElementById('omnibarInput'),
-    synthesizeBtn: document.getElementById('synthesizeBtn'),
-    quickChipsRow: document.getElementById('quickChipsRow'),
+    sidebar: document.getElementById('geminiSidebar'),
+    sidebarToggleBtn: document.getElementById('sidebarToggleBtn'),
+    sidebarCloseBtn: document.getElementById('sidebarCloseBtn'),
+    newInquiryBtn: document.getElementById('newInquiryBtn'),
+    historyList: document.getElementById('historyList'),
+    packFilterItems: document.querySelectorAll('.pack-filter-item'),
+    geminiHero: document.getElementById('geminiHero'),
+    messagesContainer: document.getElementById('messagesContainer'),
+    geminiInput: document.getElementById('geminiInput'),
+    sendBtn: document.getElementById('sendBtn'),
+    audioToggleBtn: document.getElementById('audioToggleBtn'),
+    audioIcon: document.getElementById('audioIcon'),
+    clearChatBtn: document.getElementById('clearChatBtn'),
+    topbarActiveExperts: document.getElementById('topbarActiveExperts'),
+    topbarSpeed: document.getElementById('topbarSpeed'),
+    waferModalTriggerBtn: document.getElementById('waferModalTriggerBtn'),
+    waferModalBackdrop: document.getElementById('waferModalBackdrop'),
+    waferModalCloseBtn: document.getElementById('waferModalCloseBtn'),
+    modalActiveCount: document.getElementById('modalActiveCount'),
+    modalSpeed: document.getElementById('modalSpeed'),
+    modalLatency: document.getElementById('modalLatency'),
     waferGrid: document.getElementById('waferGrid'),
-    monographContainer: document.getElementById('monographContainer'),
-    benchmarksContainer: document.getElementById('benchmarksContainer'),
-    vaultContainer: document.getElementById('vaultContainer'),
-    airgapContainer: document.getElementById('airgapContainer'),
-    navBtns: document.querySelectorAll('.nav-btn'),
-    activeExpertsCount: document.getElementById('activeExpertsCount'),
-    telemetrySpeed: document.getElementById('telemetrySpeed'),
-    telemetryRam: document.getElementById('telemetryRam'),
-    telemetryLatency: document.getElementById('telemetryLatency'),
-    audioToggleBtn: document.getElementById('audioToggleBtn')
+    starterCards: document.querySelectorAll('.starter-card')
   };
 
-  // --- Knowledge Data Access ---
   const data = window.DUNIYA_DATA || { articles: [], benchmarks: [] };
 
-  // --- 8x8 Wafer Die Generation ---
+  // --- 8x8 Wafer Die Setup ---
   function initWaferGrid() {
     if (!el.waferGrid) return;
     el.waferGrid.innerHTML = '';
@@ -94,7 +98,9 @@
       tile.title = `Expert #${i} (Domain: ${getExpertDomain(i)})`;
       tile.addEventListener('click', () => {
         playTone(600 + i * 15, 'sine', 0.06, 0.04);
-        inspectExpert(i);
+        const domain = getExpertDomain(i).split(' ')[0];
+        closeWaferModal();
+        handleUserQuery(domain);
       });
       el.waferGrid.appendChild(tile);
     }
@@ -127,18 +133,11 @@
       }
     });
 
-    if (el.activeExpertsCount) {
-      el.activeExpertsCount.textContent = `${state.activeExperts.length}/64 MoE`;
-    }
+    const activeText = `${state.activeExperts.length}/64 MoE`;
+    if (el.topbarActiveExperts) el.topbarActiveExperts.textContent = activeText;
+    if (el.modalActiveCount) el.modalActiveCount.textContent = activeText;
   }
 
-  function inspectExpert(expertId) {
-    // Dynamically route to an article corresponding to this expert
-    const domain = getExpertDomain(expertId);
-    executeSearch(domain.split(' ')[0]);
-  }
-
-  // --- Dynamic MoE Router Simulation ---
   function routeQueryToExperts(queryText) {
     const hash = simpleHash(queryText);
     const exp1 = (hash & 0x3F);
@@ -146,7 +145,6 @@
     const exp3 = ((hash >> 12) & 0x3F);
     const exp4 = ((hash >> 18) & 0x3F);
     
-    // Ensure 4 unique indices
     const set = new Set([exp1, exp2, exp3, exp4]);
     let fallback = 0;
     while (set.size < 4) {
@@ -155,14 +153,14 @@
     state.activeExperts = Array.from(set);
     updateWaferActiveTiles();
 
-    // Randomize slight variance in latency & speed
     state.telemetry.latencyMs = 780 + (hash % 180);
     state.telemetry.activeTokensSec = (27.2 + ((hash % 30) / 10)).toFixed(1);
     state.telemetry.ramMb = 188 + (hash % 24);
 
-    if (el.telemetryLatency) el.telemetryLatency.textContent = `${state.telemetry.latencyMs}ms`;
-    if (el.telemetrySpeed) el.telemetrySpeed.textContent = `${state.telemetry.activeTokensSec} tok/s`;
-    if (el.telemetryRam) el.telemetryRam.textContent = `${state.telemetry.ramMb} MB`;
+    const speedStr = `${state.telemetry.activeTokensSec} tok/s`;
+    if (el.topbarSpeed) el.topbarSpeed.textContent = speedStr;
+    if (el.modalSpeed) el.modalSpeed.textContent = speedStr;
+    if (el.modalLatency) el.modalLatency.textContent = `${state.telemetry.latencyMs}ms`;
   }
 
   function simpleHash(str) {
@@ -173,162 +171,50 @@
     return Math.abs(hash);
   }
 
-  // --- Monograph Article Rendering ---
-  function renderMonograph(article) {
-    if (!el.monographContainer) return;
-    if (!article) {
-      el.monographContainer.innerHTML = `<div class="glass-card monograph-canvas"><p>No matching research monograph found.</p></div>`;
-      return;
-    }
+  // --- Synthesis & Retrieval Engine ---
+  const STOP_WORDS = new Set(['vs', 'versus', 'the', 'a', 'an', 'and', 'or', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'what', 'is', 'are', 'why', 'how', 'explain', 'compare']);
 
-    // Build Structured Metrics Table Rows
-    const metricsRows = Object.entries(article.structuredMetrics || {}).map(([key, val]) => `
-      <tr>
-        <td class="metric-key">${escapeHtml(key)}</td>
-        <td>${escapeHtml(val)}</td>
-      </tr>
-    `).join('');
+  function findBestArticle(query) {
+    const clean = query.trim().toLowerCase();
+    const rawTokens = clean.split(/[^a-z0-9_+-]+/).filter(Boolean);
+    const meaningfulTokens = rawTokens.filter(t => t.length > 1 && !STOP_WORDS.has(t));
+    const tokens = meaningfulTokens.length > 0 ? meaningfulTokens : rawTokens;
 
-    // Build Citations
-    const citationsList = (article.primaryCitations || []).map(cit => `
-      <li class="citation-item">${escapeHtml(cit)}</li>
-    `).join('');
-
-    // Format deep explanation into paragraphs
-    const paragraphs = (article.deepExplanation || article.summary || '')
-      .split('\n\n')
-      .filter(p => p.trim().length > 0)
-      .map(p => `<p>${escapeHtml(p.trim())}</p>`)
-      .join('');
-
-    const html = `
-      <article class="glass-card monograph-canvas" id="monographArticle">
-        <header class="monograph-header">
-          <div class="monograph-domain-badge">${escapeHtml(article.domain)} • ${escapeHtml(article.subcategory || 'Technical Review')}</div>
-          <h1 class="monograph-title">${escapeHtml(article.title)}</h1>
-          <div class="monograph-metadata">
-            <span>ID: <code>${escapeHtml(article.id)}</code></span>
-            <span>Archival Peer-Review</span>
-            <span>Zero-Net Memory Mapped</span>
-            <span>Tags: ${article.tags ? article.tags.map(t => `#${escapeHtml(t)}`).join(' ') : ''}</span>
-          </div>
-        </header>
-
-        <!-- Executive Findings -->
-        <section class="executive-findings">
-          <div class="executive-findings-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-            </svg>
-            Executive Research Findings & Core Thesis
-          </div>
-          <div class="executive-findings-text">${escapeHtml(article.summary)}</div>
-        </section>
-
-        <!-- Deep Mechanical & Mathematical Exposition -->
-        <section class="monograph-section">
-          <div class="section-label">I. Deep Mechanical Derivation</div>
-          <div class="deep-explanation-body">
-            ${paragraphs}
-          </div>
-        </section>
-
-        <!-- Governing Equations -->
-        ${article.firstPrinciplesMathOrMechanism ? `
-        <section class="monograph-section">
-          <div class="section-label">II. First-Principles Governing Equations</div>
-          <div class="equation-box">
-            <code>${escapeHtml(article.firstPrinciplesMathOrMechanism)}</code>
-          </div>
-        </section>
-        ` : ''}
-
-        <!-- Comparative Specification Matrix -->
-        ${metricsRows ? `
-        <section class="monograph-section">
-          <div class="section-label">III. Comparative Specification Matrix</div>
-          <div class="matrix-table-wrapper">
-            <table class="matrix-table">
-              <thead>
-                <tr>
-                  <th style="inline-size: 32%;">Parameter / Dimension</th>
-                  <th>Architectural Specification & Proof Asymptotics</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${metricsRows}
-              </tbody>
-            </table>
-          </div>
-        </section>
-        ` : ''}
-
-        <!-- 1B Dense Model Failure Autopsy -->
-        ${article.oneBModelFailureMode ? `
-        <section class="monograph-section">
-          <div class="section-label">IV. 1B Dense Model Failure Mode Autopsy</div>
-          <div class="failure-card">
-            <div class="failure-card-title">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-              </svg>
-              Empirical Hallucination Diagnostic
-            </div>
-            <div class="failure-text">${escapeHtml(article.oneBModelFailureMode)}</div>
-          </div>
-        </section>
-        ` : ''}
-
-        <!-- Primary Empirical Citations -->
-        ${citationsList ? `
-        <section class="monograph-section">
-          <div class="section-label">V. Primary Empirical Citations & ArXiv References</div>
-          <ul class="citations-list">
-            ${citationsList}
-          </ul>
-        </section>
-        ` : ''}
-      </article>
-    `;
-
-    el.monographContainer.innerHTML = html;
-  }
-
-  // --- Search & 4-Hop Synthesis Engine ---
-  function executeSearch(query) {
-    if (!query || !query.trim()) return;
-    const cleanQuery = query.trim().toLowerCase();
-    state.query = cleanQuery;
-    if (el.omnibarInput) el.omnibarInput.value = query;
-
-    // MoE Route Animation & Telemetry
-    routeQueryToExperts(cleanQuery);
-    playSynthChord();
-
-    // 4-Hop Search Strategy:
-    // 1. Exact title or tag match
-    // 2. Keyword relevance across summary, first principles, deep explanation
-    // 3. Fallback to top related article
     let bestArticle = null;
     let highestScore = -1;
 
     data.articles.forEach(art => {
+      // Domain filter check
+      if (state.selectedDomain !== 'All Domains' && art.domain !== state.selectedDomain) {
+        return;
+      }
+
       let score = 0;
       const titleLower = art.title.toLowerCase();
       const tagsLower = (art.tags || []).map(t => t.toLowerCase());
       const summaryLower = (art.summary || '').toLowerCase();
       const mathLower = (art.firstPrinciplesMathOrMechanism || '').toLowerCase();
-      const domainLower = (art.domain || '').toLowerCase();
 
-      const tokens = cleanQuery.split(/\s+/).filter(Boolean);
+      // Check first if query exactly matches benchmark or article ID/title
+      if (clean.includes('groth16') && art.id === 'zk_groth16') score += 100;
+      if (clean.includes('binius') && art.id === 'zk_binius') score += 100;
+      if (clean.includes('plonk') && art.id === 'zk_plonk') score += 80;
+      if (clean.includes('stark') && art.id === 'zk_starks') score += 80;
 
       tokens.forEach(token => {
-        if (titleLower.includes(token)) score += 25;
-        if (tagsLower.some(t => t.includes(token))) score += 18;
-        if (domainLower.includes(token)) score += 10;
-        if (summaryLower.includes(token)) score += 6;
+        if (titleLower.includes(token)) {
+          score += 40;
+          try {
+            const re = new RegExp('\\b' + token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+            if (re.test(titleLower)) score += 30;
+          } catch (e) {}
+        }
+        if (tagsLower.includes(token)) {
+          score += 35;
+        } else if (tagsLower.some(t => t.includes(token))) {
+          score += 15;
+        }
+        if (summaryLower.includes(token)) score += 8;
         if (mathLower.includes(token)) score += 4;
       });
 
@@ -338,277 +224,256 @@
       }
     });
 
-    if (!bestArticle && data.articles.length > 0) {
-      bestArticle = data.articles[0];
-    }
-
-    if (bestArticle) {
-      state.currentArticleId = bestArticle.id;
-      renderMonograph(bestArticle);
-    }
+    return bestArticle || data.articles[0];
   }
 
-  // --- Benchmarks Tab Rendering ---
-  function renderBenchmarks() {
-    if (!el.benchmarksContainer) return;
-    const benchmarksHtml = (data.benchmarks || []).map(b => `
-      <div class="glass-card benchmark-card" data-bench-id="${escapeHtml(b.id)}">
-        <div class="benchmark-tag">${escapeHtml(b.category)} • ${escapeHtml(b.mode)}</div>
-        <div class="benchmark-heading">${escapeHtml(b.title)}</div>
-        <div class="benchmark-prompt-quote">“${escapeHtml(b.prompt)}”</div>
-        <div style="font-size: 0.78rem; font-family: var(--font-mono); color: var(--accent-crimson);">
-          ⚠ 1B Failure: ${escapeHtml(b.why1BFailsShort)}
-        </div>
-        <button class="synthesize-btn" style="align-self: flex-start; margin-block-start: 0.5rem; font-size: 0.78rem; padding-inline: 1rem; min-block-size: 36px;">
-          Execute MoE vs 1B Comparison ➔
-        </button>
-      </div>
+  // --- Chat Message Rendering (Gemini Style) ---
+  function appendUserMessage(text) {
+    if (!el.messagesContainer) return;
+    const row = document.createElement('div');
+    row.className = 'user-message-row';
+    row.innerHTML = `<div class="user-bubble">${escapeHtml(text)}</div>`;
+    el.messagesContainer.appendChild(row);
+    scrollToBottom();
+  }
+
+  function appendGeminiResponse(query, article) {
+    if (!el.messagesContainer || !article) return;
+
+    // Build structured metrics rows for the accordion
+    const metricsRows = Object.entries(article.structuredMetrics || {}).map(([key, val]) => `
+      <tr>
+        <td style="font-weight: 600; font-family: var(--font-mono);">${escapeHtml(key)}</td>
+        <td>${escapeHtml(val)}</td>
+      </tr>
     `).join('');
 
-    el.benchmarksContainer.innerHTML = `
-      <div class="glass-card" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 0.8rem;">
-        <div style="font-size: 1.25rem; font-weight: 700; color: var(--silver-100);">Vitalik's 6 Hard Challenge Benchmarks</div>
-        <p style="font-size: 0.92rem; color: var(--silver-300);">
-          Evaluates why frontier Sparse MoE + Disk-Mapped Engram models provide deep, verifiable, mathematically sound answers offline, while standard 1B dense models hallucinate, conflate setup ceremonies, and provide dangerous medical/technical misinformation.
-        </p>
+    // Primary Citations
+    const citationsList = (article.primaryCitations || []).map(c => `
+      <li style="margin-bottom: 0.35rem;">${escapeHtml(c)}</li>
+    `).join('');
+
+    // Generate Follow-up chips
+    const followUps = generateFollowUps(article);
+    const followUpsHtml = followUps.map(f => `
+      <button class="followup-chip" data-query="${escapeHtml(f)}">${escapeHtml(f)}</button>
+    `).join('');
+
+    const row = document.createElement('div');
+    row.className = 'assistant-message-row';
+    row.innerHTML = `
+      <div class="assistant-avatar" title="Duniya Offline MoE">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="#8C9EFF"></path>
+        </svg>
       </div>
-      <div class="benchmark-grid">
-        ${benchmarksHtml}
+
+      <div class="assistant-card-body">
+        <div class="response-header">
+          <span class="response-domain-badge">${escapeHtml(article.domain)} • ${escapeHtml(article.subcategory || 'Review')}</span>
+          <span class="response-telemetry-tag">● 4/64 MoE Active • UFS 4.0 MMap</span>
+        </div>
+
+        <h2 class="response-title">${escapeHtml(article.title)}</h2>
+
+        <!-- Scannable Clean Summary -->
+        <div class="response-executive-summary">
+          ${escapeHtml(article.summary)}
+        </div>
+
+        <!-- Deep Derivation Accordion -->
+        ${article.deepExplanation ? `
+        <details class="gemini-accordion">
+          <summary>📖 Technical Explanation & Mechanical Derivation</summary>
+          <div class="accordion-content">
+            ${article.deepExplanation.split('\n\n').map(p => `<p style="margin-bottom: 0.6rem;">${escapeHtml(p.trim())}</p>`).join('')}
+          </div>
+        </details>
+        ` : ''}
+
+        <!-- Governing Equations Accordion -->
+        ${article.firstPrinciplesMathOrMechanism ? `
+        <details class="gemini-accordion">
+          <summary>📐 First-Principles Governing Equations</summary>
+          <div class="accordion-content">
+            <div class="math-formula-box">
+              <code>${escapeHtml(article.firstPrinciplesMathOrMechanism)}</code>
+            </div>
+            ${article.tradeOffsAndEdgeCases ? `<p style="font-size: 0.84rem; color: var(--silver-400);"><strong>Boundary Conditions & Edge Cases:</strong> ${escapeHtml(article.tradeOffsAndEdgeCases)}</p>` : ''}
+          </div>
+        </details>
+        ` : ''}
+
+        <!-- Comparative Specification Matrix Accordion -->
+        ${metricsRows ? `
+        <details class="gemini-accordion">
+          <summary>📊 Comparative Specification Matrix</summary>
+          <div class="accordion-content" style="padding: 0.5rem 0.75rem;">
+            <table class="mini-matrix-table">
+              <thead>
+                <tr>
+                  <th style="width: 35%;">Dimension</th>
+                  <th>Specification & Complexity</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${metricsRows}
+              </tbody>
+            </table>
+          </div>
+        </details>
+        ` : ''}
+
+        <!-- 1B Model Failure Autopsy Accordion -->
+        ${article.oneBModelFailureMode ? `
+        <details class="gemini-accordion">
+          <summary>⚠️ Why 1B Dense Models Fail on This Inquiry</summary>
+          <div class="accordion-content">
+            <div class="failure-autopsy-box">
+              <strong>1B Failure Autopsy:</strong> ${escapeHtml(article.oneBModelFailureMode)}
+            </div>
+          </div>
+        </details>
+        ` : ''}
+
+        <!-- Peer-Reviewed Citations Accordion -->
+        ${citationsList ? `
+        <details class="gemini-accordion">
+          <summary>📚 Peer-Reviewed Citations & References</summary>
+          <div class="accordion-content">
+            <ul style="padding-left: 1.25rem; font-size: 0.85rem;">
+              ${citationsList}
+            </ul>
+          </div>
+        </details>
+        ` : ''}
+
+        <!-- Follow-up Queries -->
+        ${followUpsHtml ? `
+        <div style="margin-top: 0.25rem;">
+          <div style="font-size: 0.74rem; font-family: var(--font-mono); color: var(--silver-500); margin-bottom: 0.4rem;">Suggested Inquiries:</div>
+          <div class="followups-group">
+            ${followUpsHtml}
+          </div>
+        </div>
+        ` : ''}
       </div>
-      <div id="battleResultContainer" style="margin-block-start: 1rem;"></div>
     `;
 
-    // Attach click listeners to benchmark cards
-    el.benchmarksContainer.querySelectorAll('.benchmark-card').forEach(card => {
-      card.addEventListener('click', () => {
-        const benchId = card.dataset.benchId;
-        const bench = (data.benchmarks || []).find(b => b.id === benchId);
-        if (bench) showBenchmarkBattle(bench);
+    el.messagesContainer.appendChild(row);
+
+    // Attach click listeners to follow-up suggestion chips
+    row.querySelectorAll('.followup-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        handleUserQuery(chip.dataset.query);
       });
     });
+
+    scrollToBottom();
   }
 
-  function showBenchmarkBattle(bench) {
-    const battleContainer = document.getElementById('battleResultContainer');
-    if (!battleContainer) return;
+  function generateFollowUps(article) {
+    if (article.id.includes('zk') || article.domain.includes('Crypto')) {
+      return ['Compare Groth16 vs STARKs proof sizes', 'Explain binary tower fields in Binius', 'PeerDAS 2D KZG erasure coding'];
+    }
+    if (article.domain.includes('AI')) {
+      return ['How does 65K Engram table prevent collisions?', 'Compare MLA vs GQA KV-cache compression', 'Why do 1B dense models hallucinate on numbers?'];
+    }
+    if (article.domain.includes('Biology')) {
+      return ['Compare Prime Editing PE3 vs Cas9 DSBs', 'Explain N1-methylpseudouridine immune evasion', 'What are senolytics vs OSKM reprogramming?'];
+    }
+    if (article.domain.includes('Physics')) {
+      return ['Tokamak disruptions vs Stellarator 3D coils', 'High-NA EUV anamorphic optics & shot noise', 'Perovskite-silicon tandem solar efficiency limits'];
+    }
+    return ['Show first-principles mathematical derivation', 'Compare specification matrix', 'Why does a 1B model fail here?'];
+  }
 
+  function scrollToBottom() {
+    const stage = document.getElementById('conversationStage');
+    if (stage) {
+      setTimeout(() => {
+        stage.scrollTo({ top: stage.scrollHeight, behavior: 'smooth' });
+      }, 50);
+    }
+  }
+
+  // --- Main Query Execution Controller ---
+  function handleUserQuery(query) {
+    if (!query || !query.trim()) return;
+    const cleanQuery = query.trim();
+
+    // Hide hero on first inquiry
+    if (el.geminiHero) el.geminiHero.style.display = 'none';
+
+    // Append user message
+    appendUserMessage(cleanQuery);
+
+    // Clear input
+    if (el.geminiInput) {
+      el.geminiInput.value = '';
+      el.geminiInput.style.height = 'auto';
+    }
+
+    // Audio tone + MoE Route
+    routeQueryToExperts(cleanQuery);
     playSynthChord();
-    routeQueryToExperts(bench.prompt);
 
-    // Find the corresponding monograph to present the deep answer
-    let matchedArticle = data.articles.find(a => 
-      a.id.toLowerCase().includes(bench.id.replace('bench_', '')) || 
-      bench.title.toLowerCase().includes(a.title.toLowerCase().substring(0, 10))
-    ) || data.articles[0];
+    // Add to history
+    addQueryToHistory(cleanQuery);
 
-    battleContainer.innerHTML = `
-      <div class="glass-card" style="padding: 1.75rem; border-color: rgba(140, 158, 255, 0.4);">
-        <div style="display: flex; justify-content: space-between; align-items: center; border-block-end: 1px solid rgba(226, 232, 240, 0.14); padding-block-end: 1rem;">
-          <div>
-            <span class="monograph-domain-badge">${escapeHtml(bench.category)}</span>
-            <h2 style="font-size: 1.35rem; color: var(--silver-100); margin-block-start: 0.4rem;">
-              Benchmark Battle: ${escapeHtml(bench.title)}
-            </h2>
-          </div>
-          <span class="status-pill eth-pill">Offline Simulated Verdict</span>
-        </div>
-
-        <div class="battle-modal-body">
-          <!-- 1B Dense Model Collapse -->
-          <div class="battle-col one-b">
-            <div style="display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--accent-crimson);">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="15" y1="9" x2="9" y2="15"></line>
-                <line x1="9" y1="9" x2="15" y2="15"></line>
-              </svg>
-              Standard 1B Parameter Dense Model (Mobile Baseline)
-            </div>
-            <div style="font-size: 0.9rem; line-height: 1.5; color: #FECDD3; font-style: italic;">
-              “${escapeHtml(bench.simulated1BOutput)}”
-            </div>
-            <div style="font-size: 0.78rem; font-family: var(--font-mono); color: var(--accent-crimson); border-block-start: 1px solid rgba(244, 63, 94, 0.2); padding-block-start: 0.5rem;">
-              Diagnostic: ${escapeHtml(bench.why1BFailsShort)}
-            </div>
-          </div>
-
-          <!-- Duniya Sparse MoE + Engram -->
-          <div class="battle-col moe">
-            <div style="display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700; color: var(--eth-blue-glow);">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
-              Duniya ⛺ Sparse MoE + 65K Engram + Hybrid Retrieval
-            </div>
-            <div style="font-size: 0.92rem; line-height: 1.6; color: var(--silver-100);">
-              ${escapeHtml(matchedArticle.summary)}
-            </div>
-            <div style="font-family: var(--font-mono); font-size: 0.76rem; color: var(--silver-300); background: rgba(9, 12, 22, 0.5); padding: 0.6rem; border-radius: 6px; border: 1px solid rgba(226, 232, 240, 0.1);">
-              Governing Equation: ${escapeHtml(matchedArticle.firstPrinciplesMathOrMechanism)}
-            </div>
-            <button class="synthesize-btn" style="align-self: flex-start; min-block-size: 34px; font-size: 0.78rem; padding-inline: 0.9rem;" onclick="window.duniyaSwitchToLabAndOpen('${matchedArticle.id}')">
-              Open Full Monograph in Lab ➔
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-
-    battleContainer.scrollIntoView({ behavior: 'smooth' });
+    // Synthesize best article
+    const bestArticle = findBestArticle(cleanQuery);
+    appendGeminiResponse(cleanQuery, bestArticle);
   }
 
-  // --- Storage Vault Tab Rendering ---
-  function renderVault() {
-    if (!el.vaultContainer) return;
-    const packs = [
-      { name: 'Cryptography & Ethereum Protocol', size: '8.4 GB', articles: 1420, active: true },
-      { name: 'AI Systems & Sparse MoE Kernels', size: '11.2 GB', articles: 1850, active: true },
-      { name: 'Biotechnology, Genetics & Medicine', size: '9.8 GB', articles: 1640, active: true },
-      { name: 'Physics, Semiconductors & Energy', size: '7.6 GB', articles: 1210, active: true },
-      { name: 'Global History & Macroeconomics', size: '6.5 GB', articles: 980, active: true },
-      { name: 'Field Engineering & Austere Survival', size: '4.1 GB', articles: 720, active: true },
-      { name: 'Wikipedia Curated 2026 Snapshot', size: '4.8 GB', articles: 8500, active: true }
-    ];
+  function addQueryToHistory(query) {
+    if (!state.history.includes(query)) {
+      state.history.unshift(query);
+      if (state.history.length > 12) state.history.pop();
+      renderHistoryList();
+    }
+  }
 
-    const cardsHtml = packs.map(pack => `
-      <div class="glass-card vault-card">
-        <div class="pack-header">
-          <span class="pack-name">${escapeHtml(pack.name)}</span>
-          <span class="pack-size">${escapeHtml(pack.size)}</span>
-        </div>
-        <div style="font-size: 0.84rem; color: var(--silver-300);">
-          ${pack.articles.toLocaleString()} peer-reviewed monographs • Int8 HNSW + FTS5
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-block-start: 0.5rem;">
-          <span class="pack-status">
-            <span class="pulse-dot" style="inline-size: 6px; block-size: 6px; border-radius: 50%; background: var(--accent-mint);"></span>
-            MMAP CACHE ACTIVE
-          </span>
-          <button class="quick-chip" style="font-size: 0.72rem;">Inspect Index</button>
-        </div>
-      </div>
+  function renderHistoryList() {
+    if (!el.historyList) return;
+    el.historyList.innerHTML = state.history.map(q => `
+      <button class="history-item" data-query="${escapeHtml(q)}" title="${escapeHtml(q)}">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span style="overflow:hidden; text-overflow:ellipsis;">${escapeHtml(q)}</span>
+      </button>
     `).join('');
 
-    el.vaultContainer.innerHTML = `
-      <div class="glass-card" style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-        <div>
-          <div style="font-size: 1.25rem; font-weight: 700; color: var(--silver-100);">50 GB Knowledge Pack Storage Vault</div>
-          <div style="font-size: 0.85rem; color: var(--silver-400); font-family: var(--font-mono);">
-            Total Allocated: 52.4 GB • Resident Memory: 194 MB RSS • Zero Cloud Dependencies
-          </div>
-        </div>
-        <label class="synthesize-btn" style="cursor: pointer; font-size: 0.82rem; padding-inline: 1.2rem; min-block-size: 38px;">
-          <input type="file" id="importPackInput" accept=".json,.gguf" style="display: none;">
-          Import .GGUF / .JSON Pack
-        </label>
-      </div>
-      <div class="vault-grid">
-        ${cardsHtml}
-      </div>
-    `;
-
-    const importInput = document.getElementById('importPackInput');
-    if (importInput) {
-      importInput.addEventListener('change', (e) => {
-        const file = e.target.files && e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          try {
-            const parsed = JSON.parse(evt.target.result);
-            if (Array.isArray(parsed)) {
-              data.articles.push(...parsed);
-              alert(`Successfully imported ${parsed.length} articles from ${file.name}!`);
-              executeSearch(parsed[0].title);
-            }
-          } catch (err) {
-            alert('Import error: Invalid pack JSON');
-          }
-        };
-        reader.readAsText(file);
+    el.historyList.querySelectorAll('.history-item').forEach(item => {
+      item.addEventListener('click', () => {
+        handleUserQuery(item.dataset.query);
       });
-    }
-  }
-
-  // --- Airgap Audit Tab Rendering ---
-  function renderAirgap() {
-    if (!el.airgapContainer) return;
-    el.airgapContainer.innerHTML = `
-      <div class="glass-card airgap-card">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-size: 1.25rem; font-weight: 700; color: var(--silver-100);">Hardware Airgap & Zero-Network Audit</div>
-            <div style="font-size: 0.85rem; color: var(--silver-400); font-family: var(--font-mono);">
-              Kernel Socket Monitor • /proc/net/tcp Inspection • GrapheneOS Memory-Safe Sandboxing
-            </div>
-          </div>
-          <span class="status-pill offline" style="font-size: 0.82rem; padding-inline: 1rem;">
-            <span class="pulse-dot"></span>
-            0 PACKETS TRANSMITTED
-          </span>
-        </div>
-
-        <div class="log-console" id="auditConsole">
-          [KERNEL-AUDIT] Initializing local sandboxed research loop...<br>
-          [SOCKET-MON] Scanning active network descriptors (AF_INET, AF_INET6)...<br>
-          [SOCKET-MON] Outbound sockets open: 0<br>
-          [DNS-MONITOR] Remote DNS lookups requested: 0<br>
-          [MMAP-SUBSYS] Mapped 50GB pack cache directly via mmap() (MAP_SHARED, PROT_READ)<br>
-          [MOE-ENGINE] 64 experts initialized on local device storage.<br>
-          [SECURITY-OK] 100% Offline Airgap Integrity Verified. No telemetry leaves this browser instance.
-        </div>
-
-        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-          <button class="synthesize-btn" style="min-block-size: 38px; font-size: 0.82rem;" onclick="window.duniyaRunSocketAudit()">
-            Run Live Airgap Probe
-          </button>
-        </div>
-      </div>
-    `;
-  }
-
-  window.duniyaRunSocketAudit = function() {
-    const consoleEl = document.getElementById('auditConsole');
-    if (!consoleEl) return;
-    playTone(880, 'sine', 0.1, 0.05);
-    const now = new Date().toLocaleTimeString();
-    consoleEl.innerHTML += `<br>[${now}] PROBE: Testing Navigator.onLine & Fetch blocking... PASS (Zero outbound bytes)`;
-    consoleEl.scrollTop = consoleEl.scrollHeight;
-  };
-
-  window.duniyaSwitchToLabAndOpen = function(articleId) {
-    switchTab('lab');
-    const art = data.articles.find(a => a.id === articleId);
-    if (art) {
-      renderMonograph(art);
-      routeQueryToExperts(art.title);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  // --- Tab Navigation Switcher ---
-  function switchTab(tabName) {
-    state.currentTab = tabName;
-    el.navBtns.forEach(btn => {
-      if (btn.dataset.tab === tabName) btn.classList.add('active');
-      else btn.classList.remove('active');
     });
+  }
 
-    const isLab = tabName === 'lab';
-    const isBench = tabName === 'benchmarks';
-    const isVault = tabName === 'vault';
-    const isAirgap = tabName === 'airgap';
+  function resetToNewInquiry() {
+    if (el.messagesContainer) el.messagesContainer.innerHTML = '';
+    if (el.geminiHero) el.geminiHero.style.display = 'flex';
+    if (el.geminiInput) {
+      el.geminiInput.value = '';
+      el.geminiInput.focus();
+    }
+    playTone(520, 'sine', 0.05, 0.03);
+  }
 
-    const labSection = document.getElementById('labSection');
-    if (labSection) labSection.style.display = isLab ? 'contents' : 'none';
-    if (el.benchmarksContainer) el.benchmarksContainer.style.display = isBench ? 'flex' : 'none';
-    if (el.vaultContainer) el.vaultContainer.style.display = isVault ? 'flex' : 'none';
-    if (el.airgapContainer) el.airgapContainer.style.display = isAirgap ? 'flex' : 'none';
+  function openWaferModal() {
+    if (el.waferModalBackdrop) {
+      el.waferModalBackdrop.classList.add('open');
+      playTone(660, 'sine', 0.08, 0.04);
+    }
+  }
 
-    if (isBench) renderBenchmarks();
-    if (isVault) renderVault();
-    if (isAirgap) renderAirgap();
+  function closeWaferModal() {
+    if (el.waferModalBackdrop) {
+      el.waferModalBackdrop.classList.remove('open');
+    }
   }
 
   // --- HTML Escaping Utility ---
@@ -622,81 +487,133 @@
       .replace(/'/g, '&#39;');
   }
 
-  // --- Initialization & Event Listeners ---
+  // --- Initialization ---
   function init() {
     initWaferGrid();
 
-    // Default article
-    const defaultArticle = data.articles.find(a => a.id === state.currentArticleId) || data.articles[0];
-    if (defaultArticle) {
-      renderMonograph(defaultArticle);
-      routeQueryToExperts(defaultArticle.title);
-    }
+    // Default history items
+    state.history = [
+      'Groth16 vs PLONK vs STARKs vs Binius',
+      'Flash-Streamed Sparse MoE + N-Gram Memory',
+      'CRISPR-Cas9 vs Base vs Prime Editing',
+      'Tokamak vs Stellarator Magnetic Fusion'
+    ];
+    renderHistoryList();
 
-    // Omnibar Synthesize
-    if (el.synthesizeBtn && el.omnibarInput) {
-      el.synthesizeBtn.addEventListener('click', () => {
-        executeSearch(el.omnibarInput.value);
+    // Send Button & Input Enter
+    if (el.sendBtn && el.geminiInput) {
+      el.sendBtn.addEventListener('click', () => {
+        handleUserQuery(el.geminiInput.value);
       });
-      el.omnibarInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
+
+      el.geminiInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
-          executeSearch(el.omnibarInput.value);
+          handleUserQuery(el.geminiInput.value);
         }
       });
+
+      // Auto-resize textarea
+      el.geminiInput.addEventListener('input', () => {
+        el.geminiInput.style.height = 'auto';
+        el.geminiInput.style.height = `${Math.min(el.geminiInput.scrollHeight, 140)}px`;
+      });
     }
 
-    // Quick Action Chips
-    if (el.quickChipsRow) {
-      el.quickChipsRow.querySelectorAll('.quick-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-          const q = chip.dataset.query || chip.textContent.trim();
-          executeSearch(q);
+    // Starter Prompt Cards
+    if (el.starterCards) {
+      el.starterCards.forEach(card => {
+        card.addEventListener('click', () => {
+          const prompt = card.dataset.prompt;
+          handleUserQuery(prompt);
         });
       });
     }
 
-    // App Navigation Buttons
-    el.navBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        playTone(480, 'sine', 0.04, 0.02);
-        switchTab(btn.dataset.tab);
-        window.location.hash = btn.dataset.tab;
-      });
-    });
-
-    // Handle initial hash navigation
-    const initialHash = (window.location.hash || '').replace('#', '');
-    if (['lab', 'benchmarks', 'vault', 'airgap'].includes(initialHash)) {
-      switchTab(initialHash);
+    // New Research Button
+    if (el.newInquiryBtn) {
+      el.newInquiryBtn.addEventListener('click', resetToNewInquiry);
     }
-    window.addEventListener('hashchange', () => {
-      const h = (window.location.hash || '').replace('#', '');
-      if (['lab', 'benchmarks', 'vault', 'airgap'].includes(h)) {
-        switchTab(h);
-      }
-    });
+
+    // Clear Chat Button
+    if (el.clearChatBtn) {
+      el.clearChatBtn.addEventListener('click', resetToNewInquiry);
+    }
+
+    // Sidebar Toggles
+    if (el.sidebarToggleBtn && el.sidebar) {
+      el.sidebarToggleBtn.addEventListener('click', () => {
+        el.sidebar.classList.toggle('collapsed');
+      });
+    }
+    if (el.sidebarCloseBtn && el.sidebar) {
+      el.sidebarCloseBtn.addEventListener('click', () => {
+        el.sidebar.classList.add('collapsed');
+      });
+    }
+
+    // Wafer Modal
+    if (el.waferModalTriggerBtn) {
+      el.waferModalTriggerBtn.addEventListener('click', openWaferModal);
+    }
+    if (el.waferModalCloseBtn) {
+      el.waferModalCloseBtn.addEventListener('click', closeWaferModal);
+    }
+    if (el.waferModalBackdrop) {
+      el.waferModalBackdrop.addEventListener('click', (e) => {
+        if (e.target === el.waferModalBackdrop) closeWaferModal();
+      });
+    }
+
+    // Domain Filters in Sidebar
+    if (el.packFilterItems) {
+      el.packFilterItems.forEach(btn => {
+        btn.addEventListener('click', () => {
+          el.packFilterItems.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          state.selectedDomain = btn.dataset.domain;
+          playTone(480, 'sine', 0.05, 0.02);
+        });
+      });
+    }
 
     // Audio Toggle
     if (el.audioToggleBtn) {
       el.audioToggleBtn.addEventListener('click', () => {
         state.audioEnabled = !state.audioEnabled;
-        el.audioToggleBtn.textContent = state.audioEnabled ? 'Audio: ON ♫' : 'Audio: OFF';
-        if (state.audioEnabled) playTone(523.25, 'triangle', 0.15, 0.03);
+        if (state.audioEnabled) {
+          playTone(523.25, 'triangle', 0.15, 0.03);
+          el.audioIcon.innerHTML = `
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          `;
+          el.audioToggleBtn.title = 'Audio Feedback: ON';
+        } else {
+          el.audioIcon.innerHTML = `
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          `;
+          el.audioToggleBtn.title = 'Audio Feedback: OFF';
+        }
       });
     }
 
-    // Register Service Worker for 100% Offline PWA functionality
-    if ('serviceWorker' in navigator && (window.location.protocol === 'http:' || window.location.protocol === 'https:')) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
+    // Auto-focus input
+    if (el.geminiInput) el.geminiInput.focus();
+
+    // Auto-run query if passed via ?q= or #...
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialQuery = urlParams.get('q') || (window.location.hash ? decodeURIComponent(window.location.hash.substring(1)) : null);
+    if (initialQuery) {
+      handleUserQuery(initialQuery);
     }
   }
 
-  // Run when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
   }
-
 })();

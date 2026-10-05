@@ -63,7 +63,7 @@ data class DuniyaUiState(
     val activeTab: DuniyaTab = DuniyaTab.RESEARCH,
     val isEngineReady: Boolean = false,
     val isRunningQuery: Boolean = false,
-    val queryInput: String = DuniyaResearchCorpus.hardBenchmarkPrompts.first().prompt,
+    val queryInput: String = "",
     val selectedMode: ResearchMode = ResearchMode.COMPARE,
     val show1BComparisonBanner: Boolean = true,
     val showHopTraceExpanded: Boolean = true,
@@ -110,13 +110,6 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
             val ready = withContext(Dispatchers.IO) {
                 NativeDuniyaBridge.initEngine(filesDir.absolutePath)
             }
-            val initialPrompt = DuniyaResearchCorpus.hardBenchmarkPrompts.first()
-            val initialReport = withContext(Dispatchers.Default) {
-                researchEngine.executeResearch(
-                    rawQuery = initialPrompt.prompt,
-                    requestedMode = ResearchMode.COMPARE
-                )
-            }
             val telemetry = withContext(Dispatchers.IO) {
                 NativeDuniyaBridge.getKernelTelemetry()
             }
@@ -126,14 +119,19 @@ class MainScreenViewModel(application: Application) : AndroidViewModel(applicati
             _uiState.update { state ->
                 state.copy(
                     isEngineReady = ready,
-                    currentReport = initialReport,
-                    queryHistory = listOf(initialReport),
+                    currentReport = null,
+                    queryInput = "",
+                    queryHistory = emptyList(),
                     installedPacks = packs,
                     kernelTelemetry = telemetry,
                     securityAudit = audit
                 )
             }
         }
+    }
+
+    fun startNewResearch() {
+        _uiState.update { it.copy(currentReport = null, queryInput = "") }
     }
 
     fun selectTab(tab: DuniyaTab) {

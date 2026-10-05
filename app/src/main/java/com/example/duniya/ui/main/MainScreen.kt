@@ -31,10 +31,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
@@ -128,6 +132,7 @@ fun MainScreen(
         topBar = {
             DuniyaNativeMasthead(
                 uiState = uiState,
+                onNewResearch = { viewModel.startNewResearch() },
                 onOpenAirgapTab = { viewModel.selectTab(DuniyaTab.AIRGAP) }
             )
         },
@@ -264,6 +269,7 @@ private fun RichEditorialText(
 @Composable
 private fun DuniyaNativeMasthead(
     uiState: DuniyaUiState,
+    onNewResearch: () -> Unit = {},
     onOpenAirgapTab: () -> Unit
 ) {
     val p = LocalDuniyaPalette.current
@@ -321,11 +327,38 @@ private fun DuniyaNativeMasthead(
                 }
             }
 
-            // Right: Minimal Status Pill + Theme Switcher
+            // Right: New Research Button + Minimal Status Pill + Theme Switcher
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // New Research Action Button
+                Surface(
+                    color = p.vermilionSoft,
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.clickable { onNewResearch() }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "New Research",
+                            tint = p.vermilion,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(3.dp))
+                        Text(
+                            text = "New",
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 10.5.sp,
+                            color = p.vermilion
+                        )
+                    }
+                }
+
                 Surface(
                     color = p.recessedWell,
                     shape = RoundedCornerShape(12.dp),
@@ -511,7 +544,7 @@ private fun DuniyaBottomBar(
 }
 
 // ============================================================================
-// TAB 1: CLEAN RESEARCH WORKSPACE FOR SCIENTISTS & RESEARCHERS
+// TAB 1: GEMINI-STYLE CONVERSATIONAL RESEARCH WORKSPACE
 // ============================================================================
 
 @Composable
@@ -519,152 +552,187 @@ private fun ResearchMonographWorkspace(
     uiState: DuniyaUiState,
     viewModel: MainScreenViewModel
 ) {
-    val p = LocalDuniyaPalette.current
     val report = uiState.currentReport
-
-    // Sub-section tab inside the Research Report:
-    // 0 = Monograph Synthesis, 1 = Comparison Matrix, 2 = Equations & Proofs, 3 = vs. 1B Dense
-    var activeReportSection by remember(report?.query) { mutableIntStateOf(0) }
     var isDieExpanded by remember(report?.query) { mutableStateOf(false) }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        // 1. Sleek Search Omnibar
-        item {
-            ResearchOmnibar(
-                uiState = uiState,
-                onQueryChange = { viewModel.updateQueryInput(it) },
-                onSelectMode = { mode ->
-                    viewModel.selectResearchMode(mode)
-                    if (mode == ResearchMode.COMPARE) activeReportSection = 1
-                    else if (mode == ResearchMode.MECHANISM) activeReportSection = 2
-                    else activeReportSection = 0
-                },
-                onRunResearch = {
-                    viewModel.runResearchQuery(uiState.queryInput, uiState.selectedMode)
+    Column(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.weight(1f)) {
+            if (report == null) {
+                // GEMINI HERO LANDING STATE
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 12.dp)
+                ) {
+                    item {
+                        GeminiHeroLanding(
+                            onSelectPrompt = { bp ->
+                                viewModel.runBenchmarkPrompt(bp)
+                            }
+                        )
+                    }
                 }
+            } else {
+                // GEMINI CONVERSATIONAL RESEARCH THREAD
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    // 1. User Message Bubble (Right-aligned)
+                    item {
+                        GeminiUserMessageBubble(query = report.query)
+                    }
+
+                    // 2. Gemini Assistant Response Card
+                    item {
+                        GeminiAssistantCard(
+                            report = report,
+                            isDieExpanded = isDieExpanded,
+                            onToggleDie = { isDieExpanded = !isDieExpanded },
+                            onFollowUpClick = { followUpQuery ->
+                                viewModel.updateQueryInput(followUpQuery)
+                                viewModel.runResearchQuery(followUpQuery, ResearchMode.DEEP_SYNTHESIS)
+                            },
+                            onOpenSourceArticle = { art ->
+                                viewModel.openArticleModal(art)
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        // Floating Bottom Input Dock
+        GeminiInputDock(
+            queryText = uiState.queryInput,
+            onQueryChange = { viewModel.updateQueryInput(it) },
+            isRunning = uiState.isRunningQuery,
+            onSend = {
+                viewModel.runResearchQuery(uiState.queryInput, ResearchMode.DEEP_SYNTHESIS)
+            }
+        )
+    }
+}
+
+@Composable
+private fun GeminiHeroLanding(
+    onSelectPrompt: (HardBenchmarkPrompt) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val p = LocalDuniyaPalette.current
+    val benchmarks = DuniyaResearchCorpus.hardBenchmarkPrompts.take(4)
+
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Glowing Ethereum Sparkle
+        Surface(
+            color = p.vermilionSoft,
+            shape = CircleShape,
+            modifier = Modifier.size(54.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Text(
+                    text = "✦",
+                    fontSize = 28.sp,
+                    color = p.vermilion
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        Text(
+            text = "Hello, Researcher.",
+            fontFamily = FontFamily.Serif,
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
+            color = p.inkPrimary
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = "What offline question would you like to explore today?",
+            fontSize = 13.sp,
+            color = p.inkMuted,
+            lineHeight = 18.sp
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Start
+        ) {
+            Text(
+                text = "SUGGESTED INQUIRIES",
+                fontFamily = FontFamily.Monospace,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Bold,
+                color = p.vermilion
             )
         }
 
-        // 2. Horizontal Topic Suggestion Pills (Field Dossiers)
-        item {
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(
-                    DuniyaResearchCorpus.hardBenchmarkPrompts,
-                    key = { it.id }
-                ) { bp ->
-                    ResearchTopicChip(
-                        title = bp.title,
-                        isSelected = uiState.queryInput == bp.prompt,
-                        onClick = { viewModel.runBenchmarkPrompt(bp) }
-                    )
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            benchmarks.forEach { bp ->
+                val icon = when {
+                    bp.category.contains("Crypto") -> "🔐"
+                    bp.category.contains("AI") -> "⚡"
+                    bp.category.contains("Bio") -> "🧬"
+                    bp.category.contains("Phys") -> "⚛️"
+                    else -> "📜"
                 }
-            }
-        }
-
-        if (report != null) {
-            // 3. Compact 1-Line Execution Summary Pill (Collapsible Die)
-            item {
-                ExecutionTelemetryStrip(
-                    report = report,
-                    vmRssMb = uiState.kernelTelemetry.vmRssMb,
-                    isDieExpanded = isDieExpanded,
-                    onToggleDie = { isDieExpanded = !isDieExpanded }
-                )
-            }
-
-            // 4. Expanded 8x8 Die (Shown only when researcher taps "8×8 Die")
-            if (isDieExpanded) {
-                item {
-                    SiliconMoEDieInstrument(report = report)
-                }
-            }
-
-            // 5. Clean Segmented Report Switcher
-            item {
-                val matrixCount = report.comparisonTable?.entityHeaders?.size ?: 0
-                val eqCount = report.sourceArticles.size
-                ReportSectionSegmentedBar(
-                    selectedIndex = activeReportSection,
-                    matrixCount = matrixCount,
-                    equationCount = eqCount,
-                    onSelectIndex = { activeReportSection = it }
-                )
-            }
-
-            // 6. Active Report Section Content
-            when (activeReportSection) {
-                0 -> {
-                    // MONOGRAPH SYNTHESIS
-                    item {
-                        MonographThesisSheet(
-                            report = report,
-                            onJumpToMatrix = {
-                                if (report.comparisonTable != null) activeReportSection = 1
-                            },
-                            onJumpToEquations = { activeReportSection = 2 },
-                            onJumpTo1BContrast = { activeReportSection = 3 }
-                        )
-                    }
-
-                    // TECHNICAL MECHANISMS
-                    itemsIndexed(report.sections) { idx, section ->
-                        EditorialMechanismSheet(index = idx + 1, section = section)
-                    }
-
-                    // CITATIONS & VERIFIED SOURCES
-                    item {
-                        ArchivalCitationsSheet(
-                            report = report,
-                            onOpenSourceArticle = { viewModel.openArticleModal(it) }
-                        )
-                    }
-                }
-
-                1 -> {
-                    // COMPARISON MATRIX
-                    if (report.comparisonTable != null) {
-                        item {
-                            ArchivalComparisonMatrixSheet(table = report.comparisonTable)
+                Surface(
+                    color = p.sheetSurface,
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, p.ruleLine, RoundedCornerShape(14.dp))
+                        .clickable { onSelectPrompt(bp) }
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = icon, fontSize = 20.sp)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = bp.category.uppercase(),
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = p.vermilion
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = bp.title,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 13.5.sp,
+                                color = p.inkPrimary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = bp.prompt,
+                                fontSize = 11.5.sp,
+                                color = p.inkMuted,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                lineHeight = 16.sp
+                            )
                         }
-                    }
-                    item {
-                        ArchivalCitationsSheet(
-                            report = report,
-                            onOpenSourceArticle = { viewModel.openArticleModal(it) }
-                        )
-                    }
-                }
-
-                2 -> {
-                    // EQUATIONS & CONSTANTS
-                    item {
-                        ArchivalEquationsSheet(report = report)
-                    }
-                    itemsIndexed(report.sections) { idx, section ->
-                        EditorialMechanismSheet(index = idx + 1, section = section)
-                    }
-                }
-
-                3 -> {
-                    // 1B DENSE FAILURE DIAGNOSTIC
-                    item {
-                        OneBModelDiagnosticSheet(report = report)
-                    }
-                    item {
-                        MonographThesisSheet(
-                            report = report,
-                            onJumpToMatrix = {
-                                if (report.comparisonTable != null) activeReportSection = 1
-                            },
-                            onJumpToEquations = { activeReportSection = 2 },
-                            onJumpTo1BContrast = { activeReportSection = 0 }
-                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = "→", fontSize = 16.sp, color = p.inkMuted)
                     }
                 }
             }
@@ -673,67 +741,474 @@ private fun ResearchMonographWorkspace(
 }
 
 @Composable
-private fun ResearchTopicChip(
+private fun GeminiUserMessageBubble(query: String) {
+    val p = LocalDuniyaPalette.current
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End
+    ) {
+        Surface(
+            color = p.sheetSurface,
+            shape = RoundedCornerShape(16.dp, 16.dp, 4.dp, 16.dp),
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .border(1.dp, p.ruleLine, RoundedCornerShape(16.dp, 16.dp, 4.dp, 16.dp))
+        ) {
+            Text(
+                text = query,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                lineHeight = 20.sp,
+                color = p.inkPrimary,
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun GeminiAccordion(
+    icon: String,
     title: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
+    badge: String? = null,
+    badgeColor: Color = LocalDuniyaPalette.current.vermilion,
+    isExpanded: Boolean,
+    onToggle: () -> Unit,
+    content: @Composable () -> Unit
 ) {
     val p = LocalDuniyaPalette.current
     Surface(
-        color = if (isSelected) p.vermilionSoft else p.sheetSurface,
-        shape = RoundedCornerShape(16.dp),
+        color = p.sheetSurface,
+        shape = RoundedCornerShape(12.dp),
         modifier = Modifier
-            .border(
-                1.dp,
-                if (isSelected) p.vermilion else p.ruleLine.copy(alpha = 0.7f),
-                RoundedCornerShape(16.dp)
-            )
-            .clickable { onClick() }
+            .fillMaxWidth()
+            .border(1.dp, p.ruleLine, RoundedCornerShape(12.dp))
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (isSelected) {
-                Box(
-                    modifier = Modifier
-                        .size(5.dp)
-                        .background(p.vermilion, CircleShape)
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onToggle() },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(text = icon, fontSize = 15.sp)
+                    Spacer(modifier = Modifier.width(9.dp))
+                    Text(
+                        text = title,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = p.inkPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    if (badge != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Surface(
+                            color = badgeColor.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(6.dp)
+                        ) {
+                            Text(
+                                text = badge,
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = badgeColor,
+                                maxLines = 1,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    contentDescription = null,
+                    tint = p.inkMuted,
+                    modifier = Modifier.size(20.dp)
                 )
-                Spacer(modifier = Modifier.width(6.dp))
             }
-            Text(
-                text = title,
-                fontSize = 11.5.sp,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (isSelected) p.vermilion else p.inkPrimary,
-                maxLines = 1
-            )
+
+            AnimatedVisibility(visible = isExpanded) {
+                Column(modifier = Modifier.padding(top = 12.dp)) {
+                    HorizontalDivider(color = p.ruleLine.copy(alpha = 0.6f))
+                    Spacer(modifier = Modifier.height(10.dp))
+                    content()
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun ResearchOmnibar(
-    uiState: DuniyaUiState,
+private fun GeminiAssistantCard(
+    report: ResearchSynthesisReport,
+    isDieExpanded: Boolean,
+    onToggleDie: () -> Unit,
+    onFollowUpClick: (String) -> Unit,
+    onOpenSourceArticle: (ResearchArticle) -> Unit
+) {
+    val p = LocalDuniyaPalette.current
+    val primaryArticle = report.sourceArticles.firstOrNull()
+    val primaryTitle = primaryArticle?.title ?: "Multi-Domain Research Synthesis"
+    val domain = primaryArticle?.domain?.uppercase() ?: "SYSTEMS & ALGORITHMS"
+    val tel = report.moeTelemetry
+
+    var expandedExplanation by remember(report.query) { mutableStateOf(false) }
+    var expandedEquations by remember(report.query) { mutableStateOf(false) }
+    var expandedMatrix by remember(report.query) { mutableStateOf(false) }
+    var expandedFailure by remember(report.query) { mutableStateOf(false) }
+    var expandedCitations by remember(report.query) { mutableStateOf(false) }
+
+    Surface(
+        color = p.sheetSurface,
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, p.ruleLine, RoundedCornerShape(16.dp))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            // Header Row: Sparkle + Domain + MoE Pill
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(text = "✦", fontSize = 16.sp, color = p.vermilion)
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = domain,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 9.5.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = p.vermilion,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Surface(
+                    color = p.recessedWell,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.clickable { onToggleDie() }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(5.dp)
+                                .background(Color(0xFF38C98E), CircleShape)
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(
+                            text = "${tel.topExperts.size.coerceAtLeast(2)}/64 MoE · ${if (isDieExpanded) "Hide Die" else "8×8 Die ▾"}",
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = p.inkSecondary
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Title
+            Text(
+                text = primaryTitle,
+                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontSize = 19.sp,
+                lineHeight = 25.sp,
+                color = p.inkPrimary
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Executive Findings (Clean Callout)
+            Surface(
+                color = p.recessedWell,
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(0.5.dp, p.ruleLine, RoundedCornerShape(10.dp))
+            ) {
+                Row(modifier = Modifier.padding(12.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .width(3.dp)
+                            .height(28.dp)
+                            .background(p.vermilion, RoundedCornerShape(1.5.dp))
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        RichEditorialText(
+                            text = primaryArticle?.summary ?: report.executiveThesis,
+                            fontSize = 13.5.sp,
+                            lineHeight = 21.sp,
+                            color = p.inkPrimary
+                        )
+                    }
+                }
+            }
+
+            // Expanded Die (if toggled)
+            if (isDieExpanded) {
+                Spacer(modifier = Modifier.height(12.dp))
+                SiliconMoEDieInstrument(report = report)
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Collapsible Accordions:
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // 1. Technical Explanation & Mechanisms
+                if (report.sections.isNotEmpty() || !primaryArticle?.deepExplanation.isNullOrBlank()) {
+                    GeminiAccordion(
+                        icon = "📖",
+                        title = "Technical Explanation & Derivation",
+                        badge = "${report.sections.size.coerceAtLeast(1)} sections",
+                        badgeColor = p.verdigris,
+                        isExpanded = expandedExplanation,
+                        onToggle = { expandedExplanation = !expandedExplanation }
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            if (!primaryArticle?.deepExplanation.isNullOrBlank()) {
+                                RichEditorialText(
+                                    text = primaryArticle?.deepExplanation ?: "",
+                                    fontSize = 12.5.sp,
+                                    lineHeight = 18.sp,
+                                    color = p.inkSecondary
+                                )
+                            }
+                            report.sections.forEachIndexed { idx, sec ->
+                                Column {
+                                    Text(
+                                        text = "${idx + 1}. ${sec.title}",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                        color = p.inkPrimary
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    RichEditorialText(
+                                        text = sec.body,
+                                        fontSize = 12.5.sp,
+                                        lineHeight = 18.sp,
+                                        color = p.inkSecondary
+                                    )
+                                    if (!sec.formulaOrMechanismBox.isNullOrBlank()) {
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        Surface(
+                                            color = p.recessedWell,
+                                            shape = RoundedCornerShape(6.dp),
+                                            modifier = Modifier.fillMaxWidth().border(0.5.dp, p.ruleLine, RoundedCornerShape(6.dp))
+                                        ) {
+                                            Text(
+                                                text = sec.formulaOrMechanismBox,
+                                                fontFamily = FontFamily.Monospace,
+                                                fontSize = 10.5.sp,
+                                                color = p.brass,
+                                                modifier = Modifier.padding(8.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 2. Governing Equations
+                val eqArticles = report.sourceArticles.filter { !it.firstPrinciplesMathOrMechanism.isNullOrBlank() }
+                if (eqArticles.isNotEmpty()) {
+                    GeminiAccordion(
+                        icon = "📐",
+                        title = "First-Principles Governing Equations",
+                        badge = "${eqArticles.size} formulas",
+                        badgeColor = p.brass,
+                        isExpanded = expandedEquations,
+                        onToggle = { expandedEquations = !expandedEquations }
+                    ) {
+                        ArchivalEquationsSheet(report = report)
+                    }
+                }
+
+                // 3. Comparative Specification Matrix
+                if (report.comparisonTable != null) {
+                    GeminiAccordion(
+                        icon = "📊",
+                        title = "Comparative Specification Matrix",
+                        badge = "${report.comparisonTable.entityHeaders.size} entities",
+                        badgeColor = p.vermilion,
+                        isExpanded = expandedMatrix,
+                        onToggle = { expandedMatrix = !expandedMatrix }
+                    ) {
+                        ArchivalComparisonMatrixSheet(table = report.comparisonTable)
+                    }
+                }
+
+                // 4. Why 1B Dense Models Fail
+                val failureArticles = report.sourceArticles.filter { !it.oneBModelFailureMode.isNullOrBlank() }
+                if (failureArticles.isNotEmpty()) {
+                    GeminiAccordion(
+                        icon = "⚠️",
+                        title = "Why 1B Dense Models Fail on This Inquiry",
+                        badge = "Autopsy",
+                        badgeColor = p.crimson,
+                        isExpanded = expandedFailure,
+                        onToggle = { expandedFailure = !expandedFailure }
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            failureArticles.forEach { art ->
+                                Surface(
+                                    color = p.crimsonSoft,
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.fillMaxWidth().border(0.5.dp, p.crimson.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                                ) {
+                                    Column(modifier = Modifier.padding(10.dp)) {
+                                        Text(
+                                            text = art.title,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 12.sp,
+                                            color = p.crimson
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = art.oneBModelFailureMode,
+                                            fontSize = 12.sp,
+                                            lineHeight = 17.sp,
+                                            color = p.inkPrimary
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 5. Peer-Reviewed Citations
+                if (report.sourceArticles.isNotEmpty()) {
+                    GeminiAccordion(
+                        icon = "📚",
+                        title = "Peer-Reviewed Citations & References",
+                        badge = "${report.sourceArticles.size} sources",
+                        badgeColor = p.verdigris,
+                        isExpanded = expandedCitations,
+                        onToggle = { expandedCitations = !expandedCitations }
+                    ) {
+                        ArchivalCitationsSheet(
+                            report = report,
+                            onOpenSourceArticle = onOpenSourceArticle
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Suggested Follow-up Inquiries
+            val followUps = remember(primaryTitle, domain) {
+                when {
+                    domain.contains("CRYPTO") -> listOf(
+                        "Compare Groth16 vs STARKs proof sizes",
+                        "Explain binary tower fields in Binius",
+                        "PeerDAS 2D KZG erasure coding"
+                    )
+                    domain.contains("AI") || domain.contains("SPARSE") -> listOf(
+                        "How does 65K Engram table prevent collisions?",
+                        "Compare MLA vs GQA KV-cache compression",
+                        "Why do 1B dense models hallucinate on numbers?"
+                    )
+                    domain.contains("BIO") -> listOf(
+                        "Compare Prime Editing PE3 vs Cas9 DSBs",
+                        "Explain N1-methylpseudouridine immune evasion",
+                        "What are senolytics vs OSKM reprogramming?"
+                    )
+                    domain.contains("PHYSIC") -> listOf(
+                        "Tokamak disruptions vs Stellarator 3D coils",
+                        "High-NA EUV anamorphic optics & shot noise",
+                        "Perovskite-silicon tandem solar efficiency limits"
+                    )
+                    else -> listOf(
+                        "Show first-principles mathematical derivation",
+                        "Compare specification matrix",
+                        "Why does a 1B model fail here?"
+                    )
+                }
+            }
+
+            Text(
+                text = "Suggested Inquiries:",
+                fontFamily = FontFamily.Monospace,
+                fontSize = 9.sp,
+                color = p.inkMuted
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                followUps.forEach { fu ->
+                    Surface(
+                        color = p.recessedWell,
+                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier
+                            .border(1.dp, p.ruleLine, RoundedCornerShape(14.dp))
+                            .clickable { onFollowUpClick(fu) }
+                    ) {
+                        Text(
+                            text = fu,
+                            fontSize = 11.sp,
+                            color = p.inkSecondary,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GeminiInputDock(
+    queryText: String,
     onQueryChange: (String) -> Unit,
-    onSelectMode: (ResearchMode) -> Unit,
-    onRunResearch: () -> Unit
+    isRunning: Boolean,
+    onSend: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val p = LocalDuniyaPalette.current
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(p.pageBg.copy(alpha = 0.95f))
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
         Surface(
             color = p.sheetSurface,
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(26.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, p.ruleLine, RoundedCornerShape(16.dp))
+                .border(1.dp, p.ruleLine, RoundedCornerShape(26.dp))
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -746,32 +1221,33 @@ private fun ResearchOmnibar(
                 Spacer(modifier = Modifier.width(10.dp))
 
                 Box(modifier = Modifier.weight(1f)) {
-                    if (uiState.queryInput.isEmpty()) {
+                    if (queryText.isEmpty()) {
                         Text(
-                            text = "Ask any research question (e.g. CRISPR, MoE)...",
-                            fontSize = 14.sp,
-                            fontFamily = FontFamily.Serif,
-                            fontStyle = FontStyle.Italic,
+                            text = "Ask anything offline...",
+                            fontSize = 13.5.sp,
+                            fontFamily = FontFamily.SansSerif,
                             color = p.inkMuted
                         )
                     }
                     BasicTextField(
-                        value = uiState.queryInput,
+                        value = queryText,
                         onValueChange = onQueryChange,
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = {
+                            if (queryText.isNotBlank() && !isRunning) onSend()
+                        }),
                         textStyle = TextStyle(
-                            fontFamily = FontFamily.Serif,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 14.5.sp,
-                            lineHeight = 20.sp,
-                            color = p.inkPrimary
+                            fontSize = 13.5.sp,
+                            color = p.inkPrimary,
+                            fontFamily = FontFamily.SansSerif
                         ),
                         cursorBrush = SolidColor(p.vermilion),
-                        maxLines = 3,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
 
-                if (uiState.queryInput.isNotEmpty()) {
+                if (queryText.isNotEmpty()) {
                     IconButton(
                         onClick = { onQueryChange("") },
                         modifier = Modifier.size(24.dp)
@@ -780,32 +1256,34 @@ private fun ResearchOmnibar(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Clear",
                             tint = p.inkMuted,
-                            modifier = Modifier.size(15.dp)
+                            modifier = Modifier.size(16.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                 }
 
                 Surface(
-                    color = p.vermilion,
+                    color = if (queryText.isNotBlank()) p.vermilion else p.recessedWell,
                     shape = CircleShape,
                     modifier = Modifier
-                        .size(32.dp)
-                        .clickable { onRunResearch() }
+                        .size(34.dp)
+                        .clickable(enabled = queryText.isNotBlank() && !isRunning) {
+                            onSend()
+                        }
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        if (uiState.isRunningQuery) {
+                        if (isRunning) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(14.dp),
+                                modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp,
                                 color = Color.White
                             )
                         } else {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = "Synthesize",
-                                tint = Color.White,
-                                modifier = Modifier.size(16.dp)
+                            Text(
+                                text = "↑",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (queryText.isNotBlank()) Color.White else p.inkMuted
                             )
                         }
                     }
@@ -813,41 +1291,15 @@ private fun ResearchOmnibar(
             }
         }
 
-        Spacer(modifier = Modifier.height(7.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        // Clean Mode Filter Pills
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            val modes = listOf(
-                Pair(ResearchMode.DEEP_SYNTHESIS, "Synthesis"),
-                Pair(ResearchMode.COMPARE, "Comparison"),
-                Pair(ResearchMode.MECHANISM, "Equations")
-            )
-            modes.forEach { (mode, label) ->
-                val isSelected = uiState.selectedMode == mode
-                Surface(
-                    color = if (isSelected) p.vermilionSoft else Color.Transparent,
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier
-                        .border(
-                            1.dp,
-                            if (isSelected) p.vermilion.copy(alpha = 0.4f) else p.ruleLine.copy(alpha = 0.5f),
-                            RoundedCornerShape(10.dp)
-                        )
-                        .clickable { onSelectMode(mode) }
-                ) {
-                    Text(
-                        text = label,
-                        fontSize = 11.sp,
-                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (isSelected) p.vermilion else p.inkSecondary,
-                        modifier = Modifier.padding(horizontal = 9.dp, vertical = 4.dp)
-                    )
-                }
-            }
-        }
+        Text(
+            text = "Duniya runs 100% offline via local Sparse-MoE silicon · Zero remote queries",
+            fontFamily = FontFamily.Monospace,
+            fontSize = 9.sp,
+            color = p.inkMuted.copy(alpha = 0.7f),
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
     }
 }
 
