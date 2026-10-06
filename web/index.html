@@ -183,27 +183,39 @@
             100% Offline • 64-Expert Sparse MoE • 52GB Curated Knowledge Vault
           </div>
 
+          <!-- Domain Category Quick Filters & Surprise Me -->
+          <div class="hero-category-pills" id="heroCategoryPills">
+            <button class="category-pill active" data-category="all">✦ All Topics (21)</button>
+            <button class="category-pill" data-category="Cryptography & Ethereum">🔐 Cryptography (4)</button>
+            <button class="category-pill" data-category="AI & Sparse MoE Systems">🧠 Sparse MoE (3)</button>
+            <button class="category-pill" data-category="Biology & Gene Editing">🧬 CRISPR & Biotech (3)</button>
+            <button class="category-pill" data-category="Physics, Energy & Semis">⚛️ Fusion & Semis (3)</button>
+            <button class="category-pill" data-category="History & Economics">🏛️ History & State (3)</button>
+            <button class="category-pill" data-category="Field Medicine & Survival">🏔️ Field Medicine (2)</button>
+            <button class="category-pill surprise-pill" id="surpriseMeBtn" title="Pick a random research inquiry">🎲 Surprise Me</button>
+          </div>
+
           <!-- Gemini Starter Cards -->
-          <div class="starter-cards-grid">
-            <button class="starter-card" data-prompt="Compare Groth16, PLONK (KZG), STARKs (FRI), and Binius across trusted setup requirements, asymptotic prover/verifier complexity, proof size, and post-quantum security. Which architecture is optimal for client-side mobile proving vs L1 state verification?">
+          <div class="starter-cards-grid" id="starterCardsGrid">
+            <button class="starter-card" data-domain="Cryptography & Ethereum" data-prompt="Compare Groth16, PLONK (KZG), STARKs (FRI), and Binius across trusted setup requirements, asymptotic prover/verifier complexity, proof size, and post-quantum security. Which architecture is optimal for client-side mobile proving vs L1 state verification?">
               <div class="starter-card-tag">Cryptography & ZK</div>
               <div class="starter-card-title">Groth16 vs PLONK vs STARKs vs Binius</div>
               <div class="starter-card-desc">Compare trusted setups, proof sizes, and binary tower field performance.</div>
             </button>
 
-            <button class="starter-card" data-prompt="Explain why a 1B dense transformer plateaus on offline mobile research, and derive the memory-bandwidth and latency math for streaming a 30B-100B Sparse MoE + Disk-Mapped N-Gram (Engram) architecture from UFS 4.0 flash storage within a 12GB RAM budget.">
+            <button class="starter-card" data-domain="AI & Sparse MoE Systems" data-prompt="Explain why a 1B dense transformer plateaus on offline mobile research, and derive the memory-bandwidth and latency math for streaming a 30B-100B Sparse MoE + Disk-Mapped N-Gram (Engram) architecture from UFS 4.0 flash storage within a 12GB RAM budget.">
               <div class="starter-card-tag">Sparse MoE AI</div>
               <div class="starter-card-title">Flash-Streamed Sparse MoE + Engram</div>
               <div class="starter-card-desc">Derive UFS 4.0 memory-bandwidth & latency math on a phone RAM budget.</div>
             </button>
 
-            <button class="starter-card" data-prompt="Compare the molecular mechanisms of wild-type CRISPR-Cas9, Cytosine/Adenine Base Editing (CBE/ABE), and Prime Editing (PE3). Contrast double-strand break (DSB) hazards, p53 activation, bystanders, indels, and AAV in vivo delivery bottlenecks.">
+            <button class="starter-card" data-domain="Biology & Gene Editing" data-prompt="Compare the molecular mechanisms of wild-type CRISPR-Cas9, Cytosine/Adenine Base Editing (CBE/ABE), and Prime Editing (PE3). Contrast double-strand break (DSB) hazards, p53 activation, bystanders, indels, and AAV in vivo delivery bottlenecks.">
               <div class="starter-card-tag">Gene Editing</div>
               <div class="starter-card-title">CRISPR vs Base vs Prime Editing</div>
               <div class="starter-card-desc">Compare DSB hazards, pegRNA reverse transcriptase, and AAV capsids.</div>
             </button>
 
-            <button class="starter-card" data-prompt="Compare Tokamak and Stellarator magnetic confinement fusion architectures. Explain how each generates rotational transform (iota), why Tokamaks suffer from current-driven disruptions and Greenwald density limits, and how neo-classical transport optimization (quasi-isodynamic fields in W7-X) changed the Stellarator trade-off.">
+            <button class="starter-card" data-domain="Physics, Energy & Semis" data-prompt="Compare Tokamak and Stellarator magnetic confinement fusion architectures. Explain how each generates rotational transform (iota), why Tokamaks suffer from current-driven disruptions and Greenwald density limits, and how neo-classical transport optimization (quasi-isodynamic fields in W7-X) changed the Stellarator trade-off.">
               <div class="starter-card-tag">Fusion Energy</div>
               <div class="starter-card-title">Tokamak vs Stellarator Confinement</div>
               <div class="starter-card-desc">Lawson triple product, Greenwald density limits, and W7-X neo-classical fields.</div>
@@ -220,6 +232,9 @@
 
       <!-- Bottom Docked Gemini-Style Input Box -->
       <footer class="gemini-input-dock">
+        <!-- Autocomplete Suggestions Dropdown -->
+        <div class="search-suggestions-dropdown" id="searchSuggestionsDropdown" style="display: none;"></div>
+
         <div class="input-pill-wrapper">
           <textarea 
             id="geminiInput" 

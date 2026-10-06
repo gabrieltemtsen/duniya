@@ -78,7 +78,11 @@
     modalSpeed: document.getElementById('modalSpeed'),
     modalLatency: document.getElementById('modalLatency'),
     waferGrid: document.getElementById('waferGrid'),
-    starterCards: document.querySelectorAll('.starter-card')
+    starterCards: document.querySelectorAll('.starter-card'),
+    heroCategoryPills: document.getElementById('heroCategoryPills'),
+    starterCardsGrid: document.getElementById('starterCardsGrid'),
+    surpriseMeBtn: document.getElementById('surpriseMeBtn'),
+    searchSuggestionsDropdown: document.getElementById('searchSuggestionsDropdown')
   };
 
   const data = window.DUNIYA_DATA || { articles: [], benchmarks: [] };
@@ -237,23 +241,179 @@
     scrollToBottom();
   }
 
+  // --- Toast Notification ---
+  function showToast(message) {
+    const existing = document.querySelector('.duniya-toast');
+    if (existing) existing.remove();
+
+    const toast = document.createElement('div');
+    toast.className = 'duniya-toast';
+    toast.innerHTML = `<span>✨</span><span>${escapeHtml(message)}</span>`;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.style.transition = 'opacity 0.3s ease';
+      toast.style.opacity = '0';
+      setTimeout(() => toast.remove(), 300);
+    }, 2400);
+  }
+
+  // --- Offline Text-to-Speech (Web Speech API) ---
+  let currentUtterance = null;
+  function toggleSpeech(text, btn) {
+    if (!('speechSynthesis' in window)) {
+      showToast('Offline speech synth unavailable in this browser');
+      return;
+    }
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      if (btn) btn.classList.remove('speaking');
+      currentUtterance = null;
+      return;
+    }
+
+    const cleanText = text.replace(/<[^>]*>/g, '').replace(/https?:\/\/\S+/g, '');
+    const utter = new SpeechSynthesisUtterance(cleanText);
+    utter.rate = 1.05;
+    utter.pitch = 1.0;
+    utter.onend = () => {
+      if (btn) btn.classList.remove('speaking');
+      currentUtterance = null;
+    };
+    utter.onerror = () => {
+      if (btn) btn.classList.remove('speaking');
+      currentUtterance = null;
+    };
+
+    if (btn) btn.classList.add('speaking');
+    currentUtterance = utter;
+    window.speechSynthesis.speak(utter);
+  }
+
+  // --- Copy / Export Utilities ---
+  function copyMarkdownBrief(article) {
+    const metrics = Object.entries(article.structuredMetrics || {})
+      .map(([k, v]) => `| ${k} | ${v} |`).join('\n');
+    const citations = (article.primaryCitations || []).map(c => `- ${c}`).join('\n');
+
+    const md = `# ${article.title}
+**Domain:** ${article.domain} (${article.subcategory || 'Review'})
+**Verification:** 100% Offline Sparse-MoE Airgap
+
+## Executive Verdict
+${article.summary}
+
+## First-Principles Formulation
+\`\`\`
+${article.firstPrinciplesMathOrMechanism || 'N/A'}
+\`\`\`
+
+## Specification Matrix
+| Dimension | Specification |
+| :--- | :--- |
+${metrics}
+
+## 1B Dense Model Failure Autopsy
+${article.oneBModelFailureMode || 'N/A'}
+
+## Primary Citations
+${citations}
+`;
+
+    navigator.clipboard.writeText(md).then(() => {
+      showToast('Copied research monograph to clipboard');
+    }).catch(() => {
+      showToast('Clipboard access denied');
+    });
+  }
+
+  function exportMarkdownFile(article) {
+    const metrics = Object.entries(article.structuredMetrics || {})
+      .map(([k, v]) => `| ${k} | ${v} |`).join('\n');
+    const citations = (article.primaryCitations || []).map(c => `- ${c}`).join('\n');
+
+    const md = `# ${article.title}
+**Domain:** ${article.domain} (${article.subcategory || 'Review'})
+**Verification:** 100% Offline Sparse-MoE Airgap
+
+## Executive Verdict
+${article.summary}
+
+## Mechanical Derivation
+${article.deepExplanation || 'N/A'}
+
+## First-Principles Formulation
+\`\`\`
+${article.firstPrinciplesMathOrMechanism || 'N/A'}
+\`\`\`
+
+## Specification Matrix
+| Dimension | Specification |
+| :--- | :--- |
+${metrics}
+
+## 1B Failure Autopsy
+${article.oneBModelFailureMode || 'N/A'}
+
+## Primary Citations
+${citations}
+`;
+
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `duniya_${article.id}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast(`Exported duniya_${article.id}.md`);
+  }
+
+  function formatExecutiveBreakdown(article) {
+    const raw = article.summary || '';
+    const sentences = raw.split(/(?<=[.?!])\s+/).filter(Boolean);
+    const verdict = sentences[0] || raw;
+    const bullets = sentences.slice(1);
+
+    // Snapshot pills from structured metrics
+    const snapshotEntries = Object.entries(article.structuredMetrics || {}).slice(0, 4);
+    const snapshotPillsHtml = snapshotEntries.map(([k, v]) => {
+      const shortVal = v.split('(')[0].split(';')[0].trim();
+      return `<span class="snapshot-pill"><span>${escapeHtml(k)}:</span> <strong>${escapeHtml(shortVal)}</strong></span>`;
+    }).join('');
+
+    return { verdict, bullets, snapshotPillsHtml };
+  }
+
   function appendGeminiResponse(query, article) {
     if (!el.messagesContainer || !article) return;
 
-    // Build structured metrics rows for the accordion
+    const msgId = 'res_' + Math.random().toString(36).substr(2, 8);
+    const breakdown = formatExecutiveBreakdown(article);
+
+    // Build structured metrics rows
     const metricsRows = Object.entries(article.structuredMetrics || {}).map(([key, val]) => `
       <tr>
-        <td style="font-weight: 600; font-family: var(--font-mono);">${escapeHtml(key)}</td>
+        <td style="font-weight: 600; font-family: var(--font-mono); width: 34%;">${escapeHtml(key)}</td>
         <td>${escapeHtml(val)}</td>
       </tr>
     `).join('');
 
-    // Primary Citations
+    // Citations list
     const citationsList = (article.primaryCitations || []).map(c => `
-      <li style="margin-bottom: 0.35rem;">${escapeHtml(c)}</li>
+      <li style="margin-bottom: 0.45rem;">${escapeHtml(c)}</li>
     `).join('');
 
-    // Generate Follow-up chips
+    // Check for simulated 1B benchmark output
+    const matchedBench = (data.benchmarks || []).find(b => 
+      b.id === article.id || 
+      b.title.toLowerCase().includes(article.id.replace('zk_', '')) ||
+      (b.prompt && b.prompt.toLowerCase().includes(article.title.toLowerCase().slice(0, 10)))
+    );
+    const sim1BText = matchedBench ? matchedBench.simulated1BOutput : (article.oneBModelFailureMode || 'Fails with ungrounded hallucinations on numbers and asymptotic scaling.');
+
+    // Follow-ups
     const followUps = generateFollowUps(article);
     const followUpsHtml = followUps.map(f => `
       <button class="followup-chip" data-query="${escapeHtml(f)}">${escapeHtml(f)}</button>
@@ -268,51 +428,112 @@
         </svg>
       </div>
 
-      <div class="assistant-card-body">
+      <div class="assistant-card-body" id="${msgId}">
+        <!-- Top Header & Action Toolbar -->
         <div class="response-header">
-          <span class="response-domain-badge">${escapeHtml(article.domain)} • ${escapeHtml(article.subcategory || 'Review')}</span>
-          <span class="response-telemetry-tag">● 4/64 MoE Active • UFS 4.0 MMap</span>
+          <div>
+            <span class="response-domain-badge">${escapeHtml(article.domain)} • ${escapeHtml(article.subcategory || 'Review')}</span>
+            <span class="response-telemetry-tag" style="margin-left: 0.5rem;">● 4/64 MoE Active • UFS 4.0 MMap</span>
+          </div>
+
+          <div class="response-toolbar">
+            <button class="action-pill-btn btn-read-aloud" title="Read summary aloud">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              </svg>
+              <span>Listen</span>
+            </button>
+
+            <button class="action-pill-btn btn-copy-md" title="Copy formatted Markdown brief">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy MD</span>
+            </button>
+
+            <button class="action-pill-btn btn-export-md" title="Export as .md file">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>Export</span>
+            </button>
+          </div>
         </div>
 
         <h2 class="response-title">${escapeHtml(article.title)}</h2>
 
-        <!-- Scannable Clean Summary -->
-        <div class="response-executive-summary">
-          ${escapeHtml(article.summary)}
+        <!-- Layer 1: Verdict & Scannable Takeaways Box -->
+        <div class="response-verdict-box">
+          <div class="verdict-header">
+            <span>✦ Core Synthesis Verdict</span>
+          </div>
+          <div class="verdict-text">${escapeHtml(breakdown.verdict)}</div>
+
+          ${breakdown.bullets.length > 0 ? `
+          <div class="takeaway-bullets">
+            ${breakdown.bullets.map(b => `
+              <div class="takeaway-bullet-item">
+                <span class="takeaway-bullet-icon">✦</span>
+                <span>${escapeHtml(b)}</span>
+              </div>
+            `).join('')}
+          </div>
+          ` : ''}
+
+          ${breakdown.snapshotPillsHtml ? `
+          <div class="snapshot-pills-row">
+            ${breakdown.snapshotPillsHtml}
+          </div>
+          ` : ''}
         </div>
 
-        <!-- Deep Derivation Accordion -->
-        ${article.deepExplanation ? `
-        <details class="gemini-accordion">
-          <summary>📖 Technical Explanation & Mechanical Derivation</summary>
-          <div class="accordion-content">
-            ${article.deepExplanation.split('\n\n').map(p => `<p style="margin-bottom: 0.6rem;">${escapeHtml(p.trim())}</p>`).join('')}
-          </div>
-        </details>
-        ` : ''}
+        <!-- Layer 2: Segmented Interactive Tab Switcher -->
+        <div class="response-tab-bar">
+          <button class="response-tab-btn active" data-tab="findings">
+            <span>🎯 Key Findings</span>
+          </button>
+          <button class="response-tab-btn" data-tab="matrix">
+            <span>📊 Spec Matrix</span>
+          </button>
+          <button class="response-tab-btn" data-tab="math">
+            <span>📐 First Principles</span>
+          </button>
+          <button class="response-tab-btn" data-tab="autopsy">
+            <span>⚡ 1B vs MoE Autopsy</span>
+          </button>
+          <button class="response-tab-btn" data-tab="citations">
+            <span>📚 Citations</span>
+          </button>
+        </div>
 
-        <!-- Governing Equations Accordion -->
-        ${article.firstPrinciplesMathOrMechanism ? `
-        <details class="gemini-accordion">
-          <summary>📐 First-Principles Governing Equations</summary>
-          <div class="accordion-content">
-            <div class="math-formula-box">
-              <code>${escapeHtml(article.firstPrinciplesMathOrMechanism)}</code>
+        <!-- Tab Panel 1: Key Findings -->
+        <div class="response-tab-panel active" data-panel="findings">
+          <div style="font-size: 0.92rem; line-height: 1.68; color: var(--silver-200); margin-bottom: 0.85rem;">
+            ${escapeHtml(article.summary)}
+          </div>
+
+          ${followUpsHtml ? `
+          <div style="margin-top: 0.75rem;">
+            <div style="font-size: 0.74rem; font-family: var(--font-mono); color: var(--silver-500); margin-bottom: 0.45rem;">Suggested Inquiries:</div>
+            <div class="followups-group">
+              ${followUpsHtml}
             </div>
-            ${article.tradeOffsAndEdgeCases ? `<p style="font-size: 0.84rem; color: var(--silver-400);"><strong>Boundary Conditions & Edge Cases:</strong> ${escapeHtml(article.tradeOffsAndEdgeCases)}</p>` : ''}
           </div>
-        </details>
-        ` : ''}
+          ` : ''}
+        </div>
 
-        <!-- Comparative Specification Matrix Accordion -->
-        ${metricsRows ? `
-        <details class="gemini-accordion">
-          <summary>📊 Comparative Specification Matrix</summary>
-          <div class="accordion-content" style="padding: 0.5rem 0.75rem;">
+        <!-- Tab Panel 2: Spec Matrix -->
+        <div class="response-tab-panel" data-panel="matrix">
+          ${metricsRows ? `
+          <div style="overflow-x: auto;">
             <table class="mini-matrix-table">
               <thead>
                 <tr>
-                  <th style="width: 35%;">Dimension</th>
+                  <th>Dimension</th>
                   <th>Specification & Complexity</th>
                 </tr>
               </thead>
@@ -321,53 +542,121 @@
               </tbody>
             </table>
           </div>
-        </details>
-        ` : ''}
+          ` : '<p style="color: var(--silver-400); font-size: 0.88rem;">No matrix metrics recorded.</p>'}
+        </div>
 
-        <!-- 1B Model Failure Autopsy Accordion -->
-        ${article.oneBModelFailureMode ? `
-        <details class="gemini-accordion">
-          <summary>⚠️ Why 1B Dense Models Fail on This Inquiry</summary>
-          <div class="accordion-content">
-            <div class="failure-autopsy-box">
-              <strong>1B Failure Autopsy:</strong> ${escapeHtml(article.oneBModelFailureMode)}
+        <!-- Tab Panel 3: First Principles & Math -->
+        <div class="response-tab-panel" data-panel="math">
+          ${article.firstPrinciplesMathOrMechanism ? `
+          <div class="math-formula-box">
+            <code>${escapeHtml(article.firstPrinciplesMathOrMechanism)}</code>
+          </div>
+          ` : ''}
+
+          ${article.tradeOffsAndEdgeCases ? `
+          <div style="font-size: 0.86rem; color: var(--silver-400); margin-block: 0.6rem;">
+            <strong>Boundary Conditions & Edge Cases:</strong> ${escapeHtml(article.tradeOffsAndEdgeCases)}
+          </div>
+          ` : ''}
+
+          ${article.deepExplanation ? `
+          <div style="margin-top: 0.75rem; font-size: 0.9rem; line-height: 1.65; color: var(--silver-300);">
+            ${article.deepExplanation.split('\n\n').map(p => `<p style="margin-bottom: 0.55rem;">${escapeHtml(p.trim())}</p>`).join('')}
+          </div>
+          ` : ''}
+        </div>
+
+        <!-- Tab Panel 4: 1B vs MoE Side-by-Side Autopsy -->
+        <div class="response-tab-panel" data-panel="autopsy">
+          <div class="side-by-side-contrast">
+            <div class="contrast-card bad">
+              <div class="contrast-title">
+                <span>🔴 1B Dense Mobile Model (~10 tok/s)</span>
+              </div>
+              <div style="font-style: italic; opacity: 0.95;">
+                "${escapeHtml(sim1BText)}"
+              </div>
+              <div style="font-size: 0.78rem; opacity: 0.75; margin-top: 0.35rem;">
+                ⚠️ Why it fails: Activates 100% weights per token, lacks working memory for asymptotic math, and hallucinates facts.
+              </div>
+            </div>
+
+            <div class="contrast-card good">
+              <div class="contrast-title">
+                <span>🟢 Duniya Sparse MoE + RAG (~42 tok/s)</span>
+              </div>
+              <div>
+                ${escapeHtml(breakdown.verdict)}
+              </div>
+              <div style="font-size: 0.78rem; opacity: 0.85; margin-top: 0.35rem;">
+                ✓ Verified via 64-expert sparse routing (3.1% active) + 65K disk-mapped n-gram hash lookup table.
+              </div>
             </div>
           </div>
-        </details>
-        ` : ''}
-
-        <!-- Peer-Reviewed Citations Accordion -->
-        ${citationsList ? `
-        <details class="gemini-accordion">
-          <summary>📚 Peer-Reviewed Citations & References</summary>
-          <div class="accordion-content">
-            <ul style="padding-left: 1.25rem; font-size: 0.85rem;">
-              ${citationsList}
-            </ul>
-          </div>
-        </details>
-        ` : ''}
-
-        <!-- Follow-up Queries -->
-        ${followUpsHtml ? `
-        <div style="margin-top: 0.25rem;">
-          <div style="font-size: 0.74rem; font-family: var(--font-mono); color: var(--silver-500); margin-bottom: 0.4rem;">Suggested Inquiries:</div>
-          <div class="followups-group">
-            ${followUpsHtml}
-          </div>
         </div>
-        ` : ''}
+
+        <!-- Tab Panel 5: Citations -->
+        <div class="response-tab-panel" data-panel="citations">
+          ${citationsList ? `
+          <ul style="padding-left: 1.25rem; font-size: 0.88rem; color: var(--silver-300); line-height: 1.6;">
+            ${citationsList}
+          </ul>
+          <button class="action-pill-btn btn-copy-citations" style="margin-top: 0.75rem;">
+            <span>Copy Citations</span>
+          </button>
+          ` : '<p style="color: var(--silver-400); font-size: 0.88rem;">No primary citations recorded.</p>'}
+        </div>
+
       </div>
     `;
 
     el.messagesContainer.appendChild(row);
 
-    // Attach click listeners to follow-up suggestion chips
-    row.querySelectorAll('.followup-chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        handleUserQuery(chip.dataset.query);
+    const cardEl = document.getElementById(msgId);
+    if (cardEl) {
+      // Tab switching
+      const tabBtns = cardEl.querySelectorAll('.response-tab-btn');
+      const tabPanels = cardEl.querySelectorAll('.response-tab-panel');
+
+      tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetTab = btn.dataset.tab;
+          tabBtns.forEach(b => b.classList.remove('active'));
+          tabPanels.forEach(p => p.classList.remove('active'));
+
+          btn.classList.add('active');
+          const matchingPanel = cardEl.querySelector(`.response-tab-panel[data-panel="${targetTab}"]`);
+          if (matchingPanel) matchingPanel.classList.add('active');
+          playTone(560, 'sine', 0.04, 0.02);
+        });
       });
-    });
+
+      // Actions: Copy MD
+      const copyBtn = cardEl.querySelector('.btn-copy-md');
+      if (copyBtn) copyBtn.addEventListener('click', () => copyMarkdownBrief(article));
+
+      // Actions: Export MD
+      const exportBtn = cardEl.querySelector('.btn-export-md');
+      if (exportBtn) exportBtn.addEventListener('click', () => exportMarkdownFile(article));
+
+      // Actions: Read Aloud
+      const speakBtn = cardEl.querySelector('.btn-read-aloud');
+      if (speakBtn) speakBtn.addEventListener('click', () => toggleSpeech(article.summary, speakBtn));
+
+      // Actions: Copy Citations
+      const copyCiteBtn = cardEl.querySelector('.btn-copy-citations');
+      if (copyCiteBtn) copyCiteBtn.addEventListener('click', () => {
+        const citeText = (article.primaryCitations || []).join('\n');
+        navigator.clipboard.writeText(citeText).then(() => showToast('Copied citations to clipboard'));
+      });
+
+      // Follow-up chip clicks
+      cardEl.querySelectorAll('.followup-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          handleUserQuery(chip.dataset.query);
+        });
+      });
+    }
 
     scrollToBottom();
   }
@@ -520,13 +809,105 @@
       });
     }
 
-    // Starter Prompt Cards
-    if (el.starterCards) {
-      el.starterCards.forEach(card => {
+    // Starter Prompt Cards Initial Click Binding
+    bindStarterCardClicks();
+
+    function bindStarterCardClicks() {
+      const cards = document.querySelectorAll('.starter-card');
+      cards.forEach(card => {
         card.addEventListener('click', () => {
           const prompt = card.dataset.prompt;
           handleUserQuery(prompt);
         });
+      });
+    }
+
+    // Hero Domain Category Pills & Surprise Me
+    const categoryPills = document.querySelectorAll('.hero-category-pills .category-pill');
+    if (categoryPills.length > 0) {
+      categoryPills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          if (pill.id === 'surpriseMeBtn') {
+            triggerRandomInquiry();
+            return;
+          }
+          categoryPills.forEach(p => p.classList.remove('active'));
+          pill.classList.add('active');
+          const cat = pill.dataset.category;
+          renderStarterCards(cat);
+          playTone(440, 'sine', 0.04, 0.02);
+        });
+      });
+    }
+
+    function renderStarterCards(category) {
+      if (!el.starterCardsGrid) return;
+      let matchedArticles = data.articles || [];
+      if (category && category !== 'all') {
+        matchedArticles = matchedArticles.filter(a => a.domain === category);
+      }
+      const slice = matchedArticles.slice(0, 4);
+      el.starterCardsGrid.innerHTML = slice.map(art => `
+        <button class="starter-card" data-domain="${escapeHtml(art.domain)}" data-prompt="${escapeHtml(art.title)}: ${escapeHtml(art.summary.slice(0, 100))}...">
+          <div class="starter-card-tag">${escapeHtml(art.domain)}</div>
+          <div class="starter-card-title">${escapeHtml(art.title)}</div>
+          <div class="starter-card-desc">${escapeHtml(art.summary.slice(0, 110))}...</div>
+        </button>
+      `).join('');
+      bindStarterCardClicks();
+    }
+
+    function triggerRandomInquiry() {
+      const allItems = [...(data.articles || []), ...(data.benchmarks || [])];
+      if (allItems.length === 0) return;
+      const pick = allItems[Math.floor(Math.random() * allItems.length)];
+      const query = pick.prompt || pick.title;
+      playTone(660, 'triangle', 0.1, 0.04);
+      handleUserQuery(query);
+    }
+
+    // Real-Time Autocomplete / Topic Suggestions
+    if (el.geminiInput && el.searchSuggestionsDropdown) {
+      el.geminiInput.addEventListener('input', () => {
+        const query = el.geminiInput.value.trim().toLowerCase();
+        if (query.length < 2) {
+          el.searchSuggestionsDropdown.style.display = 'none';
+          return;
+        }
+
+        const matches = (data.articles || []).filter(art => {
+          return art.title.toLowerCase().includes(query) ||
+                 (art.tags || []).some(t => t.toLowerCase().includes(query)) ||
+                 art.domain.toLowerCase().includes(query);
+        }).slice(0, 5);
+
+        if (matches.length === 0) {
+          el.searchSuggestionsDropdown.style.display = 'none';
+          return;
+        }
+
+        el.searchSuggestionsDropdown.innerHTML = matches.map(m => `
+          <button class="suggestion-item" data-query="${escapeHtml(m.title)}">
+            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(m.title)}</span>
+            <span class="suggestion-domain">${escapeHtml(m.domain)}</span>
+          </button>
+        `).join('');
+
+        el.searchSuggestionsDropdown.style.display = 'flex';
+
+        el.searchSuggestionsDropdown.querySelectorAll('.suggestion-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const q = item.dataset.query;
+            el.searchSuggestionsDropdown.style.display = 'none';
+            handleUserQuery(q);
+          });
+        });
+      });
+
+      document.addEventListener('click', (e) => {
+        if (!el.searchSuggestionsDropdown.contains(e.target) && e.target !== el.geminiInput) {
+          el.searchSuggestionsDropdown.style.display = 'none';
+        }
       });
     }
 

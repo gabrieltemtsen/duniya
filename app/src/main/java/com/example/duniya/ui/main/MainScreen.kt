@@ -38,16 +38,20 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import android.widget.Toast
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
@@ -662,14 +666,53 @@ private fun GeminiHeroLanding(
             lineHeight = 18.sp
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(18.dp))
+
+        var selectedCategory by remember { mutableStateOf("ALL") }
+        val categories = listOf("ALL", "CRYPTOGRAPHY", "SPARSE MOE", "GENE EDITING", "FUSION", "HISTORY")
+
+        val filteredBenchmarks = remember(selectedCategory, benchmarks) {
+            if (selectedCategory == "ALL") benchmarks
+            else benchmarks.filter { it.category.uppercase().contains(selectedCategory) }
+        }
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(categories) { cat ->
+                val isSelected = cat == selectedCategory
+                Surface(
+                    color = if (isSelected) p.vermilion.copy(alpha = 0.18f) else p.sheetSurface,
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier
+                        .border(
+                            1.dp,
+                            if (isSelected) p.vermilion else p.ruleLine,
+                            RoundedCornerShape(14.dp)
+                        )
+                        .clickable { selectedCategory = cat }
+                ) {
+                    Text(
+                        text = if (cat == "ALL") "✦ All Topics" else cat,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 10.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isSelected) p.inkPrimary else p.inkSecondary,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(20.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
         ) {
             Text(
-                text = "SUGGESTED INQUIRIES",
+                text = "SUGGESTED INQUIRIES (${filteredBenchmarks.size})",
                 fontFamily = FontFamily.Monospace,
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
@@ -680,7 +723,7 @@ private fun GeminiHeroLanding(
         Spacer(modifier = Modifier.height(10.dp))
 
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            benchmarks.forEach { bp ->
+            filteredBenchmarks.forEach { bp ->
                 val icon = when {
                     bp.category.contains("Crypto") -> "🔐"
                     bp.category.contains("AI") -> "⚡"
@@ -845,6 +888,14 @@ private fun GeminiAccordion(
     }
 }
 
+private enum class GeminiCardTab(val label: String, val icon: String) {
+    FINDINGS("Findings", "🎯"),
+    MATRIX("Matrix", "📊"),
+    MATH("Math", "📐"),
+    AUTOPSY("1B Autopsy", "⚡"),
+    SOURCES("Sources", "📚")
+}
+
 @Composable
 private fun GeminiAssistantCard(
     report: ResearchSynthesisReport,
@@ -858,12 +909,45 @@ private fun GeminiAssistantCard(
     val primaryTitle = primaryArticle?.title ?: "Multi-Domain Research Synthesis"
     val domain = primaryArticle?.domain?.uppercase() ?: "SYSTEMS & ALGORITHMS"
     val tel = report.moeTelemetry
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
 
-    var expandedExplanation by remember(report.query) { mutableStateOf(false) }
-    var expandedEquations by remember(report.query) { mutableStateOf(false) }
-    var expandedMatrix by remember(report.query) { mutableStateOf(false) }
-    var expandedFailure by remember(report.query) { mutableStateOf(false) }
-    var expandedCitations by remember(report.query) { mutableStateOf(false) }
+    var activeTab by remember(report.query) { mutableStateOf(GeminiCardTab.FINDINGS) }
+
+    val rawSummary = primaryArticle?.summary ?: report.executiveThesis
+    val sentences = remember(rawSummary) { rawSummary.split(Regex("(?<=[.?!])\\s+")).filter { it.isNotBlank() } }
+    val coreVerdict = sentences.firstOrNull() ?: rawSummary
+    val keyBullets = sentences.drop(1).take(3)
+
+    val followUps = remember(primaryTitle, domain) {
+        when {
+            domain.contains("CRYPTO") -> listOf(
+                "Compare Groth16 vs STARKs proof sizes",
+                "Explain binary tower fields in Binius",
+                "PeerDAS 2D KZG erasure coding"
+            )
+            domain.contains("AI") || domain.contains("SPARSE") -> listOf(
+                "How does 65K Engram table prevent collisions?",
+                "Compare MLA vs GQA KV-cache compression",
+                "Why do 1B dense models hallucinate on numbers?"
+            )
+            domain.contains("BIO") -> listOf(
+                "Compare Prime Editing PE3 vs Cas9 DSBs",
+                "Explain N1-methylpseudouridine immune evasion",
+                "What are senolytics vs OSKM reprogramming?"
+            )
+            domain.contains("PHYSIC") -> listOf(
+                "Tokamak disruptions vs Stellarator 3D coils",
+                "High-NA EUV anamorphic optics & shot noise",
+                "Perovskite-silicon tandem solar efficiency limits"
+            )
+            else -> listOf(
+                "Show first-principles mathematical derivation",
+                "Compare specification matrix",
+                "Why does a 1B model fail here?"
+            )
+        }
+    }
 
     Surface(
         color = p.sheetSurface,
@@ -873,7 +957,7 @@ private fun GeminiAssistantCard(
             .border(1.dp, p.ruleLine, RoundedCornerShape(16.dp))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Header Row: Sparkle + Domain + MoE Pill
+            // Header Row: Sparkle + Domain + Actions (Copy & Die)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -896,28 +980,61 @@ private fun GeminiAssistantCard(
                     )
                 }
 
-                Surface(
-                    color = p.recessedWell,
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.clickable { onToggleDie() }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(
+                        onClick = {
+                            val copyText = buildString {
+                                appendLine(primaryTitle)
+                                appendLine("Domain: $domain")
+                                appendLine()
+                                appendLine("## Core Verdict")
+                                appendLine(rawSummary)
+                                if (report.comparisonTable != null) {
+                                    appendLine()
+                                    appendLine("## Specification Matrix")
+                                    report.comparisonTable.rows.forEach { row ->
+                                        appendLine("- ${row.dimension}: ${row.valuesByEntity.joinToString(" | ")}")
+                                    }
+                                }
+                            }
+                            clipboardManager.setText(AnnotatedString(copyText))
+                            Toast.makeText(context, "Copied Research Brief to Clipboard", Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier.size(28.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(5.dp)
-                                .background(Color(0xFF38C98E), CircleShape)
+                        Icon(
+                            imageVector = Icons.Default.ContentCopy,
+                            contentDescription = "Copy Research Brief",
+                            tint = p.inkSecondary,
+                            modifier = Modifier.size(15.dp)
                         )
-                        Spacer(modifier = Modifier.width(5.dp))
-                        Text(
-                            text = "${tel.topExperts.size.coerceAtLeast(2)}/64 MoE · ${if (isDieExpanded) "Hide Die" else "8×8 Die ▾"}",
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = p.inkSecondary
-                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Surface(
+                        color = p.recessedWell,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.clickable { onToggleDie() }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(5.dp)
+                                    .background(Color(0xFF38C98E), CircleShape)
+                            )
+                            Spacer(modifier = Modifier.width(5.dp))
+                            Text(
+                                text = "${tel.topExperts.size.coerceAtLeast(2)}/64 MoE · ${if (isDieExpanded) "Hide Die" else "8×8 Die ▾"}",
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = p.inkSecondary
+                            )
+                        }
                     }
                 }
             }
@@ -929,36 +1046,92 @@ private fun GeminiAssistantCard(
                 text = primaryTitle,
                 fontFamily = FontFamily.Serif,
                 fontWeight = FontWeight.Bold,
-                fontSize = 19.sp,
-                lineHeight = 25.sp,
+                fontSize = 18.5.sp,
+                lineHeight = 24.sp,
                 color = p.inkPrimary
             )
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Executive Findings (Clean Callout)
+            // Layer 1: Core Verdict Callout Box
             Surface(
                 color = p.recessedWell,
-                shape = RoundedCornerShape(10.dp),
+                shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(0.5.dp, p.ruleLine, RoundedCornerShape(10.dp))
+                    .border(0.5.dp, p.ruleLine, RoundedCornerShape(12.dp))
             ) {
-                Row(modifier = Modifier.padding(12.dp)) {
-                    Box(
-                        modifier = Modifier
-                            .width(3.dp)
-                            .height(28.dp)
-                            .background(p.vermilion, RoundedCornerShape(1.5.dp))
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        RichEditorialText(
-                            text = primaryArticle?.summary ?: report.executiveThesis,
-                            fontSize = 13.5.sp,
-                            lineHeight = 21.sp,
-                            color = p.inkPrimary
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "✦ CORE SYNTHESIS VERDICT",
+                            fontFamily = FontFamily.Monospace,
+                            fontSize = 9.5.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = p.vermilion
                         )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = coreVerdict,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.5.sp,
+                        lineHeight = 19.5.sp,
+                        color = p.inkPrimary
+                    )
+
+                    if (keyBullets.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            keyBullets.forEach { b ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.Top
+                                ) {
+                                    Text(
+                                        text = "•",
+                                        color = p.vermilion,
+                                        fontSize = 12.sp,
+                                        modifier = Modifier.padding(end = 6.dp)
+                                    )
+                                    Text(
+                                        text = b,
+                                        fontSize = 12.sp,
+                                        lineHeight = 17.sp,
+                                        color = p.inkSecondary
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Snapshot Metric Badges
+                    val metricSnapshots = primaryArticle?.structuredMetrics?.entries?.take(3) ?: emptyList()
+                    if (metricSnapshots.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            metricSnapshots.forEach { (k, v) ->
+                                val shortVal = v.substringBefore("(").substringBefore(";").trim()
+                                Surface(
+                                    color = p.sheetSurface,
+                                    shape = RoundedCornerShape(4.dp),
+                                    modifier = Modifier.border(0.5.dp, p.ruleLine, RoundedCornerShape(4.dp))
+                                ) {
+                                    Text(
+                                        text = "$k: $shortVal",
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 9.sp,
+                                        color = p.inkSecondary,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.5.dp)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -971,209 +1144,227 @@ private fun GeminiAssistantCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Collapsible Accordions:
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // 1. Technical Explanation & Mechanisms
-                if (report.sections.isNotEmpty() || !primaryArticle?.deepExplanation.isNullOrBlank()) {
-                    GeminiAccordion(
-                        icon = "📖",
-                        title = "Technical Explanation & Derivation",
-                        badge = "${report.sections.size.coerceAtLeast(1)} sections",
-                        badgeColor = p.verdigris,
-                        isExpanded = expandedExplanation,
-                        onToggle = { expandedExplanation = !expandedExplanation }
+            // Layer 2: Segmented Tab Row
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(GeminiCardTab.values()) { tab ->
+                    val isSelected = tab == activeTab
+                    Surface(
+                        color = if (isSelected) p.vermilion.copy(alpha = 0.2f) else p.recessedWell,
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier
+                            .border(
+                                1.dp,
+                                if (isSelected) p.vermilion else p.ruleLine,
+                                RoundedCornerShape(10.dp)
+                            )
+                            .clickable { activeTab = tab }
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            if (!primaryArticle?.deepExplanation.isNullOrBlank()) {
-                                RichEditorialText(
-                                    text = primaryArticle?.deepExplanation ?: "",
-                                    fontSize = 12.5.sp,
-                                    lineHeight = 18.sp,
-                                    color = p.inkSecondary
-                                )
+                        Row(
+                            modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = tab.icon, fontSize = 11.sp)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = tab.label,
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 10.sp,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) p.inkPrimary else p.inkSecondary
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Layer 3: Active Tab Content Panel
+            when (activeTab) {
+                GeminiCardTab.FINDINGS -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        RichEditorialText(
+                            text = rawSummary,
+                            fontSize = 13.sp,
+                            lineHeight = 20.sp,
+                            color = p.inkSecondary
+                        )
+
+                        if (followUps.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Suggested Inquiries:",
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = 9.sp,
+                                color = p.inkMuted
+                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                followUps.forEach { fu ->
+                                    Surface(
+                                        color = p.recessedWell,
+                                        shape = RoundedCornerShape(14.dp),
+                                        modifier = Modifier
+                                            .border(1.dp, p.ruleLine, RoundedCornerShape(14.dp))
+                                            .clickable { onFollowUpClick(fu) }
+                                    ) {
+                                        Text(
+                                            text = fu,
+                                            fontSize = 11.sp,
+                                            color = p.inkSecondary,
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                        )
+                                    }
+                                }
                             }
-                            report.sections.forEachIndexed { idx, sec ->
-                                Column {
+                        }
+                    }
+                }
+
+                GeminiCardTab.MATRIX -> {
+                    if (report.comparisonTable != null) {
+                        ArchivalComparisonMatrixSheet(table = report.comparisonTable)
+                    } else {
+                        Text(
+                            text = "No comparative specification matrix for this inquiry.",
+                            fontSize = 12.sp,
+                            color = p.inkMuted,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
+                }
+
+                GeminiCardTab.MATH -> {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        val eqArticles = report.sourceArticles.filter { !it.firstPrinciplesMathOrMechanism.isNullOrBlank() }
+                        if (eqArticles.isNotEmpty()) {
+                            ArchivalEquationsSheet(report = report)
+                        }
+
+                        if (!primaryArticle?.tradeOffsAndEdgeCases.isNullOrBlank()) {
+                            Surface(
+                                color = p.recessedWell,
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(0.5.dp, p.ruleLine, RoundedCornerShape(8.dp))
+                            ) {
+                                Column(modifier = Modifier.padding(10.dp)) {
                                     Text(
-                                        text = "${idx + 1}. ${sec.title}",
+                                        text = "BOUNDARY CONDITIONS & EDGE CASES",
+                                        fontFamily = FontFamily.Monospace,
+                                        fontSize = 9.sp,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 13.sp,
-                                        color = p.inkPrimary
+                                        color = p.vermilion
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
-                                    RichEditorialText(
-                                        text = sec.body,
-                                        fontSize = 12.5.sp,
-                                        lineHeight = 18.sp,
+                                    Text(
+                                        text = primaryArticle?.tradeOffsAndEdgeCases ?: "",
+                                        fontSize = 11.5.sp,
+                                        lineHeight = 16.5.sp,
                                         color = p.inkSecondary
                                     )
-                                    if (!sec.formulaOrMechanismBox.isNullOrBlank()) {
-                                        Spacer(modifier = Modifier.height(6.dp))
-                                        Surface(
-                                            color = p.recessedWell,
-                                            shape = RoundedCornerShape(6.dp),
-                                            modifier = Modifier.fillMaxWidth().border(0.5.dp, p.ruleLine, RoundedCornerShape(6.dp))
-                                        ) {
-                                            Text(
-                                                text = sec.formulaOrMechanismBox,
-                                                fontFamily = FontFamily.Monospace,
-                                                fontSize = 10.5.sp,
-                                                color = p.brass,
-                                                modifier = Modifier.padding(8.dp)
-                                            )
-                                        }
-                                    }
                                 }
+                            }
+                        }
+
+                        if (!primaryArticle?.deepExplanation.isNullOrBlank()) {
+                            RichEditorialText(
+                                text = primaryArticle?.deepExplanation ?: "",
+                                fontSize = 12.5.sp,
+                                lineHeight = 18.sp,
+                                color = p.inkSecondary
+                            )
+                        }
+                    }
+                }
+
+                GeminiCardTab.AUTOPSY -> {
+                    val failure = primaryArticle?.oneBModelFailureMode ?: "1B dense models hallucinate on numbers, formulas, and asymptotic scaling."
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Surface(
+                            color = p.crimsonSoft,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(0.5.dp, p.crimson.copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text(
+                                    text = "🔴 1B DENSE MOBILE BASELINE (~10.4 TOK/S)",
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 9.5.sp,
+                                    color = p.crimson
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = failure,
+                                    fontSize = 12.sp,
+                                    lineHeight = 17.sp,
+                                    color = p.inkPrimary
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "⚠️ Activates 100% parameters per token, lacks working memory for non-native fields and exact equations.",
+                                    fontSize = 10.5.sp,
+                                    color = p.inkMuted
+                                )
+                            }
+                        }
+
+                        Surface(
+                            color = p.sheetSurface,
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .border(0.5.dp, Color(0xFF38C98E).copy(alpha = 0.4f), RoundedCornerShape(10.dp))
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text(
+                                    text = "🟢 DUNIYA SPARSE-MOE + HYBRID RAG (~42.6 TOK/S)",
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = FontFamily.Monospace,
+                                    fontSize = 9.5.sp,
+                                    color = Color(0xFF38C98E)
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = coreVerdict,
+                                    fontSize = 12.sp,
+                                    lineHeight = 17.sp,
+                                    color = p.inkPrimary
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "✓ Factually verified via 64-expert sparse routing (3.1% active) + 65K disk-mapped n-gram hash lookup table.",
+                                    fontSize = 10.5.sp,
+                                    color = p.inkMuted
+                                )
                             }
                         }
                     }
                 }
 
-                // 2. Governing Equations
-                val eqArticles = report.sourceArticles.filter { !it.firstPrinciplesMathOrMechanism.isNullOrBlank() }
-                if (eqArticles.isNotEmpty()) {
-                    GeminiAccordion(
-                        icon = "📐",
-                        title = "First-Principles Governing Equations",
-                        badge = "${eqArticles.size} formulas",
-                        badgeColor = p.brass,
-                        isExpanded = expandedEquations,
-                        onToggle = { expandedEquations = !expandedEquations }
-                    ) {
-                        ArchivalEquationsSheet(report = report)
-                    }
-                }
-
-                // 3. Comparative Specification Matrix
-                if (report.comparisonTable != null) {
-                    GeminiAccordion(
-                        icon = "📊",
-                        title = "Comparative Specification Matrix",
-                        badge = "${report.comparisonTable.entityHeaders.size} entities",
-                        badgeColor = p.vermilion,
-                        isExpanded = expandedMatrix,
-                        onToggle = { expandedMatrix = !expandedMatrix }
-                    ) {
-                        ArchivalComparisonMatrixSheet(table = report.comparisonTable)
-                    }
-                }
-
-                // 4. Why 1B Dense Models Fail
-                val failureArticles = report.sourceArticles.filter { !it.oneBModelFailureMode.isNullOrBlank() }
-                if (failureArticles.isNotEmpty()) {
-                    GeminiAccordion(
-                        icon = "⚠️",
-                        title = "Why 1B Dense Models Fail on This Inquiry",
-                        badge = "Autopsy",
-                        badgeColor = p.crimson,
-                        isExpanded = expandedFailure,
-                        onToggle = { expandedFailure = !expandedFailure }
-                    ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            failureArticles.forEach { art ->
-                                Surface(
-                                    color = p.crimsonSoft,
-                                    shape = RoundedCornerShape(8.dp),
-                                    modifier = Modifier.fillMaxWidth().border(0.5.dp, p.crimson.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-                                ) {
-                                    Column(modifier = Modifier.padding(10.dp)) {
-                                        Text(
-                                            text = art.title,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 12.sp,
-                                            color = p.crimson
-                                        )
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = art.oneBModelFailureMode,
-                                            fontSize = 12.sp,
-                                            lineHeight = 17.sp,
-                                            color = p.inkPrimary
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // 5. Peer-Reviewed Citations
-                if (report.sourceArticles.isNotEmpty()) {
-                    GeminiAccordion(
-                        icon = "📚",
-                        title = "Peer-Reviewed Citations & References",
-                        badge = "${report.sourceArticles.size} sources",
-                        badgeColor = p.verdigris,
-                        isExpanded = expandedCitations,
-                        onToggle = { expandedCitations = !expandedCitations }
-                    ) {
+                GeminiCardTab.SOURCES -> {
+                    if (report.sourceArticles.isNotEmpty()) {
                         ArchivalCitationsSheet(
                             report = report,
                             onOpenSourceArticle = onOpenSourceArticle
                         )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(14.dp))
-
-            // Suggested Follow-up Inquiries
-            val followUps = remember(primaryTitle, domain) {
-                when {
-                    domain.contains("CRYPTO") -> listOf(
-                        "Compare Groth16 vs STARKs proof sizes",
-                        "Explain binary tower fields in Binius",
-                        "PeerDAS 2D KZG erasure coding"
-                    )
-                    domain.contains("AI") || domain.contains("SPARSE") -> listOf(
-                        "How does 65K Engram table prevent collisions?",
-                        "Compare MLA vs GQA KV-cache compression",
-                        "Why do 1B dense models hallucinate on numbers?"
-                    )
-                    domain.contains("BIO") -> listOf(
-                        "Compare Prime Editing PE3 vs Cas9 DSBs",
-                        "Explain N1-methylpseudouridine immune evasion",
-                        "What are senolytics vs OSKM reprogramming?"
-                    )
-                    domain.contains("PHYSIC") -> listOf(
-                        "Tokamak disruptions vs Stellarator 3D coils",
-                        "High-NA EUV anamorphic optics & shot noise",
-                        "Perovskite-silicon tandem solar efficiency limits"
-                    )
-                    else -> listOf(
-                        "Show first-principles mathematical derivation",
-                        "Compare specification matrix",
-                        "Why does a 1B model fail here?"
-                    )
-                }
-            }
-
-            Text(
-                text = "Suggested Inquiries:",
-                fontFamily = FontFamily.Monospace,
-                fontSize = 9.sp,
-                color = p.inkMuted
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                followUps.forEach { fu ->
-                    Surface(
-                        color = p.recessedWell,
-                        shape = RoundedCornerShape(14.dp),
-                        modifier = Modifier
-                            .border(1.dp, p.ruleLine, RoundedCornerShape(14.dp))
-                            .clickable { onFollowUpClick(fu) }
-                    ) {
+                    } else {
                         Text(
-                            text = fu,
-                            fontSize = 11.sp,
-                            color = p.inkSecondary,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                            text = "No peer-reviewed citations listed for this topic.",
+                            fontSize = 12.sp,
+                            color = p.inkMuted,
+                            modifier = Modifier.padding(8.dp)
                         )
                     }
                 }
